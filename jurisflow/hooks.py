@@ -1,7 +1,7 @@
 app_name = "jurisflow"
-app_title = "Law MAnagement system"
+app_title = "JurisFlow"
 app_publisher = "John Njuguna"
-app_description = "for managing law services "
+app_description = "Law firm practice management for ERPNext"
 app_email = "kiangainjuguna@gmail.com"
 app_license = "mit"
 
@@ -256,3 +256,10 @@ app_license = "mit"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+required_apps = ["frappe", "erpnext"]
+
+scheduler_events = {
+    "daily": ["jurisflow.tasks.send_hearing_reminders"],
+}
+
+after_install = "jurisflow.setup.after_install"

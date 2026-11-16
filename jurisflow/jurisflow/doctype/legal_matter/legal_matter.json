@@ -1,0 +1,183 @@
+{
+ "doctype": "DocType",
+ "name": "Legal Matter",
+ "module": "Jurisflow",
+ "custom": 0,
+ "istable": 0,
+ "editable_grid": 0,
+ "is_submittable": 0,
+ "engine": "InnoDB",
+ "track_changes": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "fields": [
+  {
+   "fieldname": "title",
+   "label": "Matter Title",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "customer",
+   "label": "Client",
+   "fieldtype": "Link",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "practice_area",
+   "label": "Practice Area",
+   "fieldtype": "Link",
+   "options": "Practice Area",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "label": "",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "label": "Status",
+   "fieldtype": "Select",
+   "options": "Open\nOn Hold\nClosed\nArchived",
+   "default": "Open",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "responsible_advocate",
+   "label": "Responsible Advocate",
+   "fieldtype": "Link",
+   "options": "User",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "opened_on",
+   "label": "Opened On",
+   "fieldtype": "Date",
+   "default": "Today"
+  },
+  {
+   "fieldname": "closed_on",
+   "label": "Closed On",
+   "fieldtype": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_court",
+   "label": "Court Details",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "court",
+   "label": "Court / Tribunal",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "case_no",
+   "label": "Case Number",
+   "fieldtype": "Data",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "opposing_party",
+   "label": "Opposing Party",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "column_break_2",
+   "label": "",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "billing_type",
+   "label": "Billing Type",
+   "fieldtype": "Select",
+   "options": "Hourly\nFixed Fee\nRetainer\nScale Fee",
+   "default": "Hourly"
+  },
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "default": null
+  },
+  {
+   "fieldname": "section_parties",
+   "label": "Parties",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "parties",
+   "label": "Parties",
+   "fieldtype": "Table",
+   "options": "Matter Party"
+  },
+  {
+   "fieldname": "section_billing",
+   "label": "Billing Summary",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "unbilled_amount",
+   "label": "Unbilled Amount",
+   "fieldtype": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_notes",
+   "label": "Notes",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "label": "Description",
+   "fieldtype": "Text Editor"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Legal Admin",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Advocate",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ],
+ "autoname": "MAT-.YYYY.-.####",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "title,customer,case_no"
+}

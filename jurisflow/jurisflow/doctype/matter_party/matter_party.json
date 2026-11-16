@@ -1,0 +1,48 @@
+{
+ "doctype": "DocType",
+ "name": "Matter Party",
+ "module": "Jurisflow",
+ "custom": 0,
+ "istable": 1,
+ "editable_grid": 1,
+ "is_submittable": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "fields": [
+  {
+   "fieldname": "party_name",
+   "label": "Party Name",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "role",
+   "label": "Role",
+   "fieldtype": "Select",
+   "options": "Client\nOpposing Party\nOpposing Counsel\nWitness\nCo-Counsel\nOther",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "id_number",
+   "label": "ID / Registration No.",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "phone",
+   "label": "Phone",
+   "fieldtype": "Data",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "email",
+   "label": "Email",
+   "fieldtype": "Data",
+   "options": "Email"
+  }
+ ],
+ "permissions": []
+}
