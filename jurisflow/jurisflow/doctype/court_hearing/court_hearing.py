@@ -5,17 +5,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_time, get_url_to_form, getdate, now_datetime, today
 
+from jurisflow.engines.hearing_clock import seconds_of
 from jurisflow.services.matter_service import refresh_matter_summary
-
-
-def seconds_of(t):
-    """Normalise a Time value (str / time / timedelta / None) to seconds since midnight."""
-    if t in (None, ""):
-        return None
-    if isinstance(t, timedelta):
-        return int(t.total_seconds())
-    t = get_time(t)
-    return t.hour * 3600 + t.minute * 60 + t.second
 
 
 class CourtHearing(Document):

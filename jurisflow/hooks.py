@@ -258,31 +258,21 @@ app_license = "mit"
 
 required_apps = ["frappe", "erpnext"]
 
-scheduler_events = {
-    "daily": ["jurisflow.jobs.reminder_jobs.send_hearing_reminders"],
-}
-
 after_install = "jurisflow.setup.install.after_install"
 
-
-# ---- JurisFlow phase 1: court engine ----
-try:
-    scheduler_events
-except NameError:
-    scheduler_events = {}
-scheduler_events.setdefault("cron", {})["0 17 * * *"] = ["jurisflow.jobs.hearing_jobs.send_daily_court_brief"]
-scheduler_events.setdefault("hourly", []).append("jurisflow.jobs.hearing_jobs.escalate_unconfirmed_hearings")
-
-try:
-    doc_events
-except NameError:
-    doc_events = {}
-doc_events["Matter Task"] = {
-    "on_update": "jurisflow.services.matter_service.refresh_from_doc",
-    "after_delete": "jurisflow.services.matter_service.refresh_from_doc",
+scheduler_events = {
+    "daily": ["jurisflow.jobs.reminder_jobs.send_hearing_reminders"],
+    "hourly": ["jurisflow.jobs.hearing_jobs.escalate_unconfirmed_hearings"],
+    "cron": {"0 17 * * *": ["jurisflow.jobs.hearing_jobs.send_daily_court_brief"]},
 }
-doc_events["Legal Time Entry"] = {
-    "validate": "jurisflow.services.matter_service.time_entry_validate",
-    "on_update": "jurisflow.services.matter_service.refresh_from_doc",
-    "after_delete": "jurisflow.services.matter_service.refresh_from_doc",
+
+_matter_refresh = "jurisflow.services.matter_service.refresh_from_doc"
+
+doc_events = {
+    "Matter Task": {"on_update": _matter_refresh, "after_delete": _matter_refresh},
+    "Legal Time Entry": {
+        "validate": "jurisflow.services.matter_service.time_entry_validate",
+        "on_update": _matter_refresh,
+        "after_delete": _matter_refresh,
+    },
 }

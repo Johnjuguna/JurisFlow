@@ -7,9 +7,8 @@ from html import escape
 import frappe
 from frappe.utils import add_days, get_datetime, get_url_to_form, getdate, now_datetime, strip_html_tags, today
 
-from jurisflow.jurisflow.doctype.court_hearing.court_hearing import seconds_of
-
-DEFAULT_HEARING_SECONDS = 9 * 3600  # hearings with no time are treated as 9:00 for reminders
+from jurisflow.engines.hearing_clock import hearing_moment
+from jurisflow.engines.hearing_clock import next_court_day as next_court_day_after
 
 
 def send(recipients, subject, message):
@@ -22,10 +21,7 @@ def send(recipients, subject, message):
 
 
 def next_court_day():
-    d = getdate(add_days(today(), 1))
-    while d.weekday() >= 5:  # skip Saturday and Sunday
-        d = d + timedelta(days=1)
-    return d
+    return next_court_day_after(getdate(today()))
 
 
 def partner_recipients():
@@ -45,10 +41,7 @@ def partner_recipients():
 
 
 def hearing_datetime(h):
-    secs = seconds_of(h.hearing_time)
-    if secs is None:
-        secs = DEFAULT_HEARING_SECONDS
-    return get_datetime(h.hearing_date) + timedelta(seconds=secs)
+    return hearing_moment(h.hearing_date, h.hearing_time)
 
 
 def last_outcome(h):
