@@ -1,5 +1,5 @@
 import frappe
-from jurisflow.jurisflow.doctype.legal_matter.legal_matter import create_invoice
+from jurisflow.jf_matters.doctype.legal_matter.legal_matter import create_invoice
 
 
 def run():

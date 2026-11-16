@@ -93,7 +93,7 @@ def run():
     except Exception as e:
         say("scheduled jobs run without error", False, repr(e))
 
-    from jurisflow.jurisflow.report.matters_without_next_action.matters_without_next_action import execute
+    from jurisflow.jf_matters.report.matters_without_next_action.matters_without_next_action import execute
     cols, data = execute()
     say("report runs", isinstance(data, list), f"{len(data)} row(s)")
 
