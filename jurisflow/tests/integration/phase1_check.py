@@ -85,7 +85,7 @@ def run():
     say("unbilled amount = 10000", float(vals.unbilled_amount or 0) == 10000, str(vals.unbilled_amount))
     say("limitation date set", str(vals.limitation_date) == str(add_days(today(), 90)), str(vals.limitation_date))
 
-    from jurisflow.court_jobs import escalate_unconfirmed_hearings, send_daily_court_brief
+    from jurisflow.jobs.hearing_jobs import escalate_unconfirmed_hearings, send_daily_court_brief
     try:
         send_daily_court_brief()
         escalate_unconfirmed_hearings()

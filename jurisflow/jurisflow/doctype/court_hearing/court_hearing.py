@@ -5,7 +5,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_time, get_url_to_form, getdate, now_datetime, today
 
-from jurisflow.matter_utils import refresh_matter_summary
+from jurisflow.services.matter_service import refresh_matter_summary
 
 
 def seconds_of(t):

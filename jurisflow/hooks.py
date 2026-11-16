@@ -151,19 +151,19 @@ app_license = "mit"
 
 # scheduler_events = {
 # 	"all": [
-# 		"jurisflow.tasks.all"
+# 		"jurisflow.jobs.reminder_jobs.all"
 # 	],
 # 	"daily": [
-# 		"jurisflow.tasks.daily"
+# 		"jurisflow.jobs.reminder_jobs.daily"
 # 	],
 # 	"hourly": [
-# 		"jurisflow.tasks.hourly"
+# 		"jurisflow.jobs.reminder_jobs.hourly"
 # 	],
 # 	"weekly": [
-# 		"jurisflow.tasks.weekly"
+# 		"jurisflow.jobs.reminder_jobs.weekly"
 # 	],
 # 	"monthly": [
-# 		"jurisflow.tasks.monthly"
+# 		"jurisflow.jobs.reminder_jobs.monthly"
 # 	],
 # }
 
@@ -259,10 +259,10 @@ app_license = "mit"
 required_apps = ["frappe", "erpnext"]
 
 scheduler_events = {
-    "daily": ["jurisflow.tasks.send_hearing_reminders"],
+    "daily": ["jurisflow.jobs.reminder_jobs.send_hearing_reminders"],
 }
 
-after_install = "jurisflow.setup.after_install"
+after_install = "jurisflow.setup.install.after_install"
 
 
 # ---- JurisFlow phase 1: court engine ----
@@ -270,19 +270,19 @@ try:
     scheduler_events
 except NameError:
     scheduler_events = {}
-scheduler_events.setdefault("cron", {})["0 17 * * *"] = ["jurisflow.court_jobs.send_daily_court_brief"]
-scheduler_events.setdefault("hourly", []).append("jurisflow.court_jobs.escalate_unconfirmed_hearings")
+scheduler_events.setdefault("cron", {})["0 17 * * *"] = ["jurisflow.jobs.hearing_jobs.send_daily_court_brief"]
+scheduler_events.setdefault("hourly", []).append("jurisflow.jobs.hearing_jobs.escalate_unconfirmed_hearings")
 
 try:
     doc_events
 except NameError:
     doc_events = {}
 doc_events["Matter Task"] = {
-    "on_update": "jurisflow.matter_utils.refresh_from_doc",
-    "after_delete": "jurisflow.matter_utils.refresh_from_doc",
+    "on_update": "jurisflow.services.matter_service.refresh_from_doc",
+    "after_delete": "jurisflow.services.matter_service.refresh_from_doc",
 }
 doc_events["Legal Time Entry"] = {
-    "validate": "jurisflow.matter_utils.time_entry_validate",
-    "on_update": "jurisflow.matter_utils.refresh_from_doc",
-    "after_delete": "jurisflow.matter_utils.refresh_from_doc",
+    "validate": "jurisflow.services.matter_service.time_entry_validate",
+    "on_update": "jurisflow.services.matter_service.refresh_from_doc",
+    "after_delete": "jurisflow.services.matter_service.refresh_from_doc",
 }
