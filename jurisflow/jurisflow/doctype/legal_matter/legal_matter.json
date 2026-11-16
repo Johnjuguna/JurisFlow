@@ -1,183 +1,234 @@
 {
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-11-16 12:00:00",
  "doctype": "DocType",
- "name": "Legal Matter",
- "module": "Jurisflow",
- "custom": 0,
- "istable": 0,
- "editable_grid": 0,
- "is_submittable": 0,
  "engine": "InnoDB",
- "track_changes": 1,
- "sort_field": "creation",
- "sort_order": "DESC",
+ "field_order": [
+  "naming_series",
+  "title",
+  "customer",
+  "practice_area",
+  "column_break_1",
+  "status",
+  "stage",
+  "responsible_advocate",
+  "opened_on",
+  "closed_on",
+  "section_court",
+  "court",
+  "case_no",
+  "opposing_party",
+  "column_break_2",
+  "billing_type",
+  "company",
+  "section_timeline",
+  "next_hearing_date",
+  "limitation_date",
+  "column_break_3",
+  "last_activity_on",
+  "section_parties",
+  "parties",
+  "section_billing",
+  "unbilled_amount",
+  "section_notes",
+  "description"
+ ],
  "fields": [
   {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "MAT-.YYYY.-.#####",
+   "default": "MAT-.YYYY.-.#####",
+   "hidden": 1
+  },
+  {
    "fieldname": "title",
-   "label": "Matter Title",
    "fieldtype": "Data",
+   "label": "Title",
    "reqd": 1,
    "in_list_view": 1
   },
   {
    "fieldname": "customer",
-   "label": "Client",
    "fieldtype": "Link",
+   "label": "Client",
    "options": "Customer",
    "reqd": 1,
-   "in_list_view": 1
+   "in_list_view": 1,
+   "in_standard_filter": 1
   },
   {
    "fieldname": "practice_area",
-   "label": "Practice Area",
    "fieldtype": "Link",
+   "label": "Practice Area",
    "options": "Practice Area",
-   "reqd": 1,
    "in_standard_filter": 1
   },
   {
    "fieldname": "column_break_1",
-   "label": "",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "status",
-   "label": "Status",
    "fieldtype": "Select",
+   "label": "Status",
    "options": "Open\nOn Hold\nClosed\nArchived",
    "default": "Open",
    "in_list_view": 1,
    "in_standard_filter": 1
   },
   {
+   "fieldname": "stage",
+   "fieldtype": "Select",
+   "label": "Stage",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "\nIntake\nPleadings\nMention\nPre-trial Directions\nHearing\nJudgment\nExecution\nAppeal\nClosed"
+  },
+  {
    "fieldname": "responsible_advocate",
-   "label": "Responsible Advocate",
    "fieldtype": "Link",
+   "label": "Responsible Advocate",
    "options": "User",
-   "reqd": 1,
    "in_standard_filter": 1
   },
   {
    "fieldname": "opened_on",
-   "label": "Opened On",
    "fieldtype": "Date",
+   "label": "Opened On",
    "default": "Today"
   },
   {
    "fieldname": "closed_on",
-   "label": "Closed On",
    "fieldtype": "Date",
+   "label": "Closed On",
    "read_only": 1
   },
   {
    "fieldname": "section_court",
-   "label": "Court Details",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Court"
   },
   {
    "fieldname": "court",
-   "label": "Court / Tribunal",
-   "fieldtype": "Data"
+   "fieldtype": "Link",
+   "label": "Court",
+   "options": "Court"
   },
   {
    "fieldname": "case_no",
-   "label": "Case Number",
    "fieldtype": "Data",
-   "in_list_view": 1
+   "label": "Case No."
   },
   {
    "fieldname": "opposing_party",
-   "label": "Opposing Party",
-   "fieldtype": "Data"
+   "fieldtype": "Data",
+   "label": "Opposing Party"
   },
   {
    "fieldname": "column_break_2",
-   "label": "",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "billing_type",
-   "label": "Billing Type",
    "fieldtype": "Select",
-   "options": "Hourly\nFixed Fee\nRetainer\nScale Fee",
-   "default": "Hourly"
+   "label": "Billing Type",
+   "options": "Hourly\nFixed Fee\nRetainer\nScale Fee"
   },
   {
    "fieldname": "company",
-   "label": "Company",
    "fieldtype": "Link",
-   "options": "Company",
-   "default": null
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "section_timeline",
+   "fieldtype": "Section Break",
+   "label": "Key Dates (automatic)"
+  },
+  {
+   "fieldname": "next_hearing_date",
+   "fieldtype": "Date",
+   "label": "Next Hearing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "limitation_date",
+   "fieldtype": "Date",
+   "label": "Earliest Limitation Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_activity_on",
+   "fieldtype": "Date",
+   "label": "Last Activity",
+   "read_only": 1
   },
   {
    "fieldname": "section_parties",
-   "label": "Parties",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Parties"
   },
   {
    "fieldname": "parties",
-   "label": "Parties",
    "fieldtype": "Table",
+   "label": "Parties",
    "options": "Matter Party"
   },
   {
    "fieldname": "section_billing",
-   "label": "Billing Summary",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Billing"
   },
   {
    "fieldname": "unbilled_amount",
-   "label": "Unbilled Amount",
    "fieldtype": "Currency",
+   "label": "Unbilled Amount",
    "read_only": 1
   },
   {
    "fieldname": "section_notes",
-   "label": "Notes",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Notes"
   },
   {
    "fieldname": "description",
-   "label": "Description",
-   "fieldtype": "Text Editor"
+   "fieldtype": "Text Editor",
+   "label": "Description"
   }
  ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-16 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Jurisflow",
+ "name": "Legal Matter",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
  "permissions": [
   {
-   "role": "System Manager",
-   "read": 1,
-   "write": 1,
    "create": 1,
    "delete": 1,
-   "report": 1,
+   "email": 1,
    "export": 1,
    "print": 1,
-   "email": 1,
-   "share": 1
-  },
-  {
-   "role": "Legal Admin",
    "read": 1,
-   "write": 1,
-   "create": 1,
    "report": 1,
-   "export": 1,
-   "print": 1,
-   "email": 1,
-   "share": 1
-  },
-  {
-   "role": "Advocate",
-   "read": 1,
-   "write": 1,
-   "create": 1,
-   "report": 1,
-   "print": 1,
-   "email": 1,
-   "share": 1
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
   }
  ],
- "autoname": "MAT-.YYYY.-.####",
- "title_field": "title",
- "show_title_field_in_link": 1,
- "search_fields": "title,customer,case_no"
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "title_field": "title"
 }

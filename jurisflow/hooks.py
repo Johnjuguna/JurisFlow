@@ -263,3 +263,26 @@ scheduler_events = {
 }
 
 after_install = "jurisflow.setup.after_install"
+
+
+# ---- JurisFlow phase 1: court engine ----
+try:
+    scheduler_events
+except NameError:
+    scheduler_events = {}
+scheduler_events.setdefault("cron", {})["0 17 * * *"] = ["jurisflow.court_jobs.send_daily_court_brief"]
+scheduler_events.setdefault("hourly", []).append("jurisflow.court_jobs.escalate_unconfirmed_hearings")
+
+try:
+    doc_events
+except NameError:
+    doc_events = {}
+doc_events["Matter Task"] = {
+    "on_update": "jurisflow.matter_utils.refresh_from_doc",
+    "after_delete": "jurisflow.matter_utils.refresh_from_doc",
+}
+doc_events["Legal Time Entry"] = {
+    "validate": "jurisflow.matter_utils.time_entry_validate",
+    "on_update": "jurisflow.matter_utils.refresh_from_doc",
+    "after_delete": "jurisflow.matter_utils.refresh_from_doc",
+}

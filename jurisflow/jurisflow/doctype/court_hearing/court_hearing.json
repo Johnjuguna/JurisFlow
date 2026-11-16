@@ -1,114 +1,226 @@
 {
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-11-16 12:00:00",
  "doctype": "DocType",
- "name": "Court Hearing",
- "module": "Jurisflow",
- "custom": 0,
- "istable": 0,
- "editable_grid": 0,
- "is_submittable": 0,
  "engine": "InnoDB",
- "track_changes": 1,
- "sort_field": "creation",
- "sort_order": "DESC",
+ "field_order": [
+  "naming_series",
+  "matter",
+  "case_no",
+  "responsible_advocate",
+  "column_break_1",
+  "hearing_date",
+  "hearing_time",
+  "court",
+  "judicial_officer",
+  "section_status",
+  "purpose",
+  "status",
+  "column_break_2",
+  "attending_advocate",
+  "attendance_confirmed",
+  "confirmed_on",
+  "section_outcome",
+  "outcome",
+  "column_break_3",
+  "adjournment_reason",
+  "next_date",
+  "next_hearing",
+  "section_tracking",
+  "reminded_on",
+  "escalated_on"
+ ],
  "fields": [
   {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "HRG-.YYYY.-.#####",
+   "default": "HRG-.YYYY.-.#####",
+   "hidden": 1
+  },
+  {
    "fieldname": "matter",
-   "label": "Matter",
    "fieldtype": "Link",
+   "label": "Matter",
    "options": "Legal Matter",
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1
   },
   {
+   "fieldname": "case_no",
+   "fieldtype": "Data",
+   "label": "Case No.",
+   "fetch_from": "matter.case_no",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "responsible_advocate",
+   "fieldtype": "Link",
+   "label": "Responsible Advocate",
+   "options": "User",
+   "fetch_from": "matter.responsible_advocate",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "hearing_date",
-   "label": "Hearing Date",
    "fieldtype": "Date",
+   "label": "Hearing Date",
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1
   },
   {
    "fieldname": "hearing_time",
-   "label": "Time",
-   "fieldtype": "Time"
-  },
-  {
-   "fieldname": "column_break_1",
-   "label": "",
-   "fieldtype": "Column Break"
+   "fieldtype": "Time",
+   "label": "Hearing Time"
   },
   {
    "fieldname": "court",
+   "fieldtype": "Link",
    "label": "Court",
+   "options": "Court",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "judicial_officer",
    "fieldtype": "Data",
-   "fetch_from": "matter.court"
+   "label": "Judge / Magistrate"
+  },
+  {
+   "fieldname": "section_status",
+   "fieldtype": "Section Break",
+   "label": "Status and Attendance"
   },
   {
    "fieldname": "purpose",
-   "label": "Purpose",
    "fieldtype": "Select",
+   "label": "Purpose",
    "options": "Mention\nHearing\nPre-trial\nJudgment\nRuling\nMotion\nOther",
-   "in_list_view": 1
+   "default": "Mention"
   },
   {
    "fieldname": "status",
-   "label": "Status",
    "fieldtype": "Select",
+   "label": "Status",
    "options": "Scheduled\nAttended\nAdjourned\nCancelled",
    "default": "Scheduled",
-   "in_list_view": 1
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "attending_advocate",
+   "fieldtype": "Link",
+   "label": "Attending Advocate",
+   "options": "User",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "attendance_confirmed",
+   "fieldtype": "Check",
+   "label": "Attendance Confirmed"
+  },
+  {
+   "fieldname": "confirmed_on",
+   "fieldtype": "Datetime",
+   "label": "Confirmed On",
+   "read_only": 1
   },
   {
    "fieldname": "section_outcome",
-   "label": "Outcome",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Outcome"
   },
   {
    "fieldname": "outcome",
-   "label": "Outcome / Orders",
-   "fieldtype": "Text Editor"
+   "fieldtype": "Text Editor",
+   "label": "Outcome"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "adjournment_reason",
+   "fieldtype": "Select",
+   "label": "Adjournment Reason",
+   "options": "\nAt our request\nAt opposing party's request\nCourt not sitting\nJudicial officer absent\nDocuments not filed or served\nSettlement talks\nOther",
+   "depends_on": "eval:doc.status=='Adjourned'",
+   "mandatory_depends_on": "eval:doc.status=='Adjourned'"
   },
   {
    "fieldname": "next_date",
+   "fieldtype": "Date",
    "label": "Next Date",
-   "fieldtype": "Date"
+   "depends_on": "eval:doc.status=='Adjourned'",
+   "mandatory_depends_on": "eval:doc.status=='Adjourned'"
+  },
+  {
+   "fieldname": "next_hearing",
+   "fieldtype": "Link",
+   "label": "Next Hearing",
+   "options": "Court Hearing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_tracking",
+   "fieldtype": "Section Break",
+   "label": "Reminder Tracking",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "reminded_on",
+   "fieldtype": "Datetime",
+   "label": "Advocate Reminded On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "escalated_on",
+   "fieldtype": "Datetime",
+   "label": "Escalated to Partners On",
+   "read_only": 1
   }
  ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-16 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Jurisflow",
+ "name": "Court Hearing",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
  "permissions": [
   {
-   "role": "System Manager",
-   "read": 1,
-   "write": 1,
    "create": 1,
    "delete": 1,
-   "report": 1,
+   "email": 1,
    "export": 1,
    "print": 1,
-   "email": 1,
-   "share": 1
-  },
-  {
-   "role": "Legal Admin",
    "read": 1,
-   "write": 1,
-   "create": 1,
    "report": 1,
-   "export": 1,
-   "print": 1,
-   "email": 1,
-   "share": 1
-  },
-  {
-   "role": "Advocate",
-   "read": 1,
-   "write": 1,
-   "create": 1,
-   "report": 1,
-   "print": 1,
-   "email": 1,
-   "share": 1
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
   }
  ],
- "autoname": "HRG-.YYYY.-.#####"
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "title_field": "matter"
 }
