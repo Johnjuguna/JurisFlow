@@ -9,6 +9,7 @@
   "naming_series",
   "title",
   "customer",
+  "conflict_check",
   "practice_area",
   "column_break_1",
   "status",
@@ -59,6 +60,14 @@
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1
+  },
+  {
+   "fieldname": "conflict_check",
+   "fieldtype": "Link",
+   "label": "Conflict Check",
+   "options": "Conflict Check",
+   "in_standard_filter": 1,
+   "description": "A cleared Conflict Check is required to open a matter."
   },
   {
    "fieldname": "practice_area",
@@ -206,7 +215,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-16 15:01:53.881307",
+ "modified": "2026-11-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "JF Matters",
  "name": "Legal Matter",
@@ -215,7 +224,7 @@
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
+   "delete": 0,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -224,6 +233,46 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "role": "Law Firm Partner",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1
+  },
+  {
+   "role": "Advocate",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1
+  },
+  {
+   "role": "Law Clerk",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "print": 1,
+   "report": 1
+  },
+  {
+   "role": "Legal Admin",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1
   }
  ],
  "sort_field": "modified",

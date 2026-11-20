@@ -1,0 +1,46 @@
+{
+ "actions": [],
+ "creation": "2026-11-16 15:47:22.368360",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enforce_conflict_gate",
+  "name_match_threshold"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enforce_conflict_gate",
+   "fieldtype": "Check",
+   "label": "Require a cleared Conflict Check before a matter can be opened"
+  },
+  {
+   "default": "85",
+   "description": "Names at or above this similarity are flagged. Lower is stricter. Allowed 50 to 100.",
+   "fieldname": "name_match_threshold",
+   "fieldtype": "Int",
+   "label": "Name Match Threshold (%)"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-16 15:47:22.368360",
+ "modified_by": "Administrator",
+ "module": "JF Compliance",
+ "name": "JF Compliance Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Law Firm Partner",
+   "write": 1
+  }
+ ],
+ "states": []
+}

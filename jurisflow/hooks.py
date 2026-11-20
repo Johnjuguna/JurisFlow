@@ -269,6 +269,7 @@ scheduler_events = {
 _matter_refresh = "jurisflow.services.matter_service.refresh_from_doc"
 
 doc_events = {
+    "Legal Matter": {"validate": "jurisflow.services.conflict_service.enforce_gate"},
     "Matter Task": {"on_update": _matter_refresh, "after_delete": _matter_refresh},
     "Legal Time Entry": {
         "validate": "jurisflow.services.matter_service.time_entry_validate",

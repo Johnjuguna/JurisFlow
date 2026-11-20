@@ -54,7 +54,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-16 15:01:53.881307",
+ "modified": "2026-11-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "JF Diary",
  "name": "Court",
@@ -63,7 +63,7 @@
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
+   "delete": 0,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -72,6 +72,40 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "role": "Law Firm Partner",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1
+  },
+  {
+   "role": "Advocate",
+   "permlevel": 0,
+   "read": 1,
+   "print": 1,
+   "report": 1
+  },
+  {
+   "role": "Law Clerk",
+   "permlevel": 0,
+   "read": 1,
+   "print": 1,
+   "report": 1
+  },
+  {
+   "role": "Legal Admin",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1
   }
  ],
  "sort_field": "modified",

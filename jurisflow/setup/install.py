@@ -1,6 +1,6 @@
 import frappe
 
-ROLES = ["Advocate", "Law Clerk", "Legal Admin"]
+ROLES = ["Advocate", "Law Clerk", "Legal Admin", "Law Firm Partner"]
 AREAS = ["Litigation", "Conveyancing", "Corporate and Commercial",
          "Family", "Probate and Succession", "Employment"]
 
