@@ -3,7 +3,7 @@ app_title = "JurisFlow"
 app_publisher = "John Njuguna"
 app_description = "Law firm practice management for ERPNext"
 app_email = "kiangainjuguna@gmail.com"
-app_license = "mit"
+app_license = "Proprietary"
 
 # Apps
 # ------------------
@@ -277,3 +277,9 @@ doc_events = {
         "after_delete": _matter_refresh,
     },
 }
+
+
+# --- JF Deadlines (managed block) ---
+from jurisflow.deadline_hooks import merge_doc_events, merge_scheduler
+scheduler_events = merge_scheduler(scheduler_events)
+doc_events = merge_doc_events(doc_events)

@@ -1,0 +1,17 @@
+{
+  "presets": {
+    "RW": {"read":1,"write":1,"create":1,"print":1,"email":1,"report":1},
+    "RO": {"read":1,"print":1,"report":1},
+    "CLERK": {"read":1,"write":1,"print":1,"report":1},
+    "PARTNER_RW": {"read":1,"write":1,"create":1,"print":1,"email":1,"report":1,"export":1,"share":1}
+  },
+  "doctypes": {
+    "Legal Matter": {"Law Firm Partner":"PARTNER_RW","Advocate":"RW","Law Clerk":"CLERK","Legal Admin":"RW"},
+    "Court Hearing": {"Law Firm Partner":"PARTNER_RW","Advocate":"RW","Law Clerk":"RW","Legal Admin":"RW"},
+    "Court": {"Law Firm Partner":"RW","Advocate":"RO","Law Clerk":"RO","Legal Admin":"RW"},
+    "JF Deadline Settings": {"System Manager":"RW","Law Firm Partner":"RW","Advocate":"RO","Law Clerk":"RO"},
+    "Deadline Rule": {"System Manager":"RW","Law Firm Partner":"RW","Advocate":"RO","Law Clerk":"RO","Legal Admin":"RO"},
+    "Deadline Trigger Event": {"System Manager":"RW","Law Firm Partner":"RW","Advocate":"RW","Law Clerk":"RW","Legal Admin":"RW"},
+    "Computed Deadline": {"System Manager":"RW","Law Firm Partner":"RW","Advocate":"RW","Law Clerk":"RO","Legal Admin":"RO"}
+  }
+}
