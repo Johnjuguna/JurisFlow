@@ -1,40 +1,20 @@
-### Law MAnagement system
+# Nexus Kenya — static website concept
 
-for managing law services 
+A responsive HTML/CSS/JavaScript prototype for a verified local-services directory.
 
-### Installation
+## Run locally
+1. Extract the ZIP file.
+2. Open `index.html` in a browser.
+3. No build tools or backend are required.
 
-You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+## Included interactions
+- Search by keyword and location
+- Category filtering
+- Verified and featured filters
+- Sort by business name
+- Responsive mobile navigation
+- Business profile preview modal
+- Demo business-listing form
 
-```bash
-cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch version-16
-bench install-app jurisflow
-```
-
-### Contributing
-
-This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
-
-```bash
-cd apps/jurisflow
-pre-commit install
-```
-
-Pre-commit is configured to use the following tools for checking and formatting your code:
-
-- ruff
-- eslint
-- prettier
-- pyupgrade
-### CI
-
-This app can use GitHub Actions for CI. The following workflows are configured:
-
-- CI: Installs this app and runs unit tests on every push to `develop` branch.
-- Linters: Runs [Frappe Semgrep Rules](https://github.com/frappe/semgrep-rules) and [pip-audit](https://pypi.org/project/pip-audit/) on every pull request.
-
-
-### License
-
-mit
+## Important
+This is a frontend concept only. Listings and form submissions are sample data; nothing is sent to a server. The production version would need a Frappe backend, secure authentication, moderation, privacy controls, verified business workflows and approved payment integrations.
