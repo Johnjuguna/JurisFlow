@@ -283,3 +283,13 @@ doc_events = {
 from jurisflow.deadline_hooks import merge_doc_events, merge_scheduler
 scheduler_events = merge_scheduler(scheduler_events)
 doc_events = merge_doc_events(doc_events)
+
+add_to_apps_screen = [
+    {
+        "name": "jurisflow",
+        "logo": "/assets/jurisflow/images/jurisflow.svg",
+        "title": "JurisFlow",
+        "route": "/desk/jf-matters",
+        "has_permission": "erpnext.check_app_permission",
+    }
+]
