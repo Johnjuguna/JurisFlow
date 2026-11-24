@@ -1,0 +1,153 @@
+{
+ "doctype": "Workspace",
+ "name": "JF Matters",
+ "label": "JF Matters",
+ "title": "JF Matters",
+ "module": "JF Matters",
+ "public": 1,
+ "is_hidden": 0,
+ "content": "[{\"id\": \"b1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Legal Matter\", \"col\": 3}}, {\"id\": \"b2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Matter Task\", \"col\": 3}}, {\"id\": \"b3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Court Hearing\", \"col\": 3}}, {\"id\": \"b4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Computed Deadline\", \"col\": 3}}, {\"id\": \"b5\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"b6\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Matters</b></span>\", \"col\": 12}}, {\"id\": \"b7\", \"type\": \"card\", \"data\": {\"card_name\": \"Matters\", \"col\": 4}}, {\"id\": \"b8\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"b9\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Diary & Deadlines</b></span>\", \"col\": 12}}, {\"id\": \"b10\", \"type\": \"card\", \"data\": {\"card_name\": \"Diary & Deadlines\", \"col\": 4}}, {\"id\": \"b11\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"b12\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Billing</b></span>\", \"col\": 12}}, {\"id\": \"b13\", \"type\": \"card\", \"data\": {\"card_name\": \"Billing\", \"col\": 4}}]",
+ "shortcuts": [
+  {
+   "type": "DocType",
+   "link_to": "Legal Matter",
+   "label": "Legal Matter",
+   "doc_view": "List",
+   "stats_filter": "[[\"Legal Matter\", \"status\", \"=\", \"Open\"]]"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Matter Task",
+   "label": "Matter Task",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Court Hearing",
+   "label": "Court Hearing",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Computed Deadline",
+   "label": "Computed Deadline",
+   "doc_view": "List"
+  }
+ ],
+ "links": [
+  {
+   "type": "Card Break",
+   "label": "Matters"
+  },
+  {
+   "type": "Link",
+   "label": "Legal Matter",
+   "link_type": "DocType",
+   "link_to": "Legal Matter",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Matter Task",
+   "link_type": "DocType",
+   "link_to": "Matter Task",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Practice Area",
+   "link_type": "DocType",
+   "link_to": "Practice Area",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Conflict Check",
+   "link_type": "DocType",
+   "link_to": "Conflict Check",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Diary & Deadlines"
+  },
+  {
+   "type": "Link",
+   "label": "Court Hearing",
+   "link_type": "DocType",
+   "link_to": "Court Hearing",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Computed Deadline",
+   "link_type": "DocType",
+   "link_to": "Computed Deadline",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Court",
+   "link_type": "DocType",
+   "link_to": "Court",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Deadline Rule",
+   "link_type": "DocType",
+   "link_to": "Deadline Rule",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Billing"
+  },
+  {
+   "type": "Link",
+   "label": "Legal Time Entry",
+   "link_type": "DocType",
+   "link_to": "Legal Time Entry",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Customer",
+   "link_type": "DocType",
+   "link_to": "Customer",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  },
+  {
+   "type": "Link",
+   "label": "Sales Invoice",
+   "link_type": "DocType",
+   "link_to": "Sales Invoice",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0
+  }
+ ],
+ "charts": [],
+ "number_cards": [],
+ "roles": []
+}
