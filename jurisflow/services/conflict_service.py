@@ -2,55 +2,71 @@
 
 import frappe
 from frappe import _
-from frappe.utils import cint, now_datetime
+from frappe.utils import escape_html, formatdate, getdate, now_datetime, today
 
-from jurisflow.engines.conflict_matcher import DEFAULT_THRESHOLD, find_matches, name_similarity
+from jurisflow.engines.conflict_gate import (
+    clearance_expired,
+    same_party,
+    split_names,
+    uncovered_parties,
+    usable_ids,
+)
+from jurisflow.engines.conflict_matcher import find_matches
+from jurisflow.services import conflict_settings
 
-SETTINGS = "JF Compliance Settings"
-CLEARED = ("No Conflict", "Cleared by Partner")
-FINAL = ("No Conflict", "Cleared by Partner", "Declined")
-PARTNER_ROLES = {"Law Firm Partner", "System Manager"}
+# Statuses of a Conflict Check.
+STATUS_FOUND = "Conflict Found"
+STATUS_NO_CONFLICT = "No Conflict"
+STATUS_CLEARED = "Cleared by Partner"
+STATUS_DECLINED = "Declined"
+CLEARED = (STATUS_NO_CONFLICT, STATUS_CLEARED)
+FINAL = (STATUS_NO_CONFLICT, STATUS_CLEARED, STATUS_DECLINED)
+PARTNER_DECISIONS = (STATUS_CLEARED, STATUS_DECLINED)  # the only outcomes a partner can record
 
-# Expected matches that are recorded but do not stop the matter: (searched as, found in).
-INFORMATIONAL = {
-    ("Client", "Customer"),                  # an existing client coming back
-    ("Client", "Prior check (client)"),      # the same prospect checked before
-    ("Adverse", "Matter (adverse party)"),   # we already act against this party elsewhere
-    ("Adverse", "Prior check (adverse)"),
-}
+# What a name was searched as, and where a match was found. The Select options of
+# Conflict Informational Rule must list exactly these; a unit test guards against drift.
+KINDS = ("Client", "Related", "Adverse")
+SOURCES = (
+    "Customer",
+    "Matter Party",
+    "Matter (adverse party)",
+    "Prior check (client)",
+    "Prior check (adverse)",
+    "Prior check (related)",
+)
+SRC_CUSTOMER, SRC_PARTY, SRC_MATTER_ADVERSE, SRC_CHECK_CLIENT, SRC_CHECK_ADVERSE, SRC_CHECK_RELATED = SOURCES
+
+PARTY_DOCTYPE = "Matter Party"
 
 
-def gate_enabled():
-    val = frappe.db.get_single_value(SETTINGS, "enforce_conflict_gate")
-    return True if val is None else bool(cint(val))
-
-
-def match_threshold():
-    pct = cint(frappe.db.get_single_value(SETTINGS, "name_match_threshold"))
-    return (pct / 100) if pct else DEFAULT_THRESHOLD
-
+# --- permissions -----------------------------------------------------------------------------
 
 def require_partner():
-    if not (set(frappe.get_roles()) & PARTNER_ROLES):
-        frappe.throw(_("Only a Law Firm Partner can clear or decline a conflict."), frappe.PermissionError)
+    allowed = conflict_settings.partner_roles()
+    if not allowed:
+        frappe.throw(_("No roles are allowed to clear conflicts yet. Set them in JF Compliance Settings."))
+    if not (set(frappe.get_roles()) & allowed):
+        frappe.throw(_("You are not permitted to clear or decline a conflict."), frappe.PermissionError)
 
+
+# --- search ----------------------------------------------------------------------------------
 
 def gather_candidates(exclude_check=None):
     rows = []
     for c in frappe.get_all("Customer", fields=["name", "customer_name", "tax_id"]):
-        rows.append({"source": "Customer", "record": c.name, "name": c.customer_name,
+        rows.append({"source": SRC_CUSTOMER, "record": c.name, "name": c.customer_name,
                      "id_number": c.tax_id, "role": "Client"})
 
     for p in frappe.db.sql(
         "select parent, party_name, id_number, role from `tabMatter Party` where parenttype = 'Legal Matter'",
         as_dict=True,
     ):
-        rows.append({"source": "Matter Party", "record": p.parent, "name": p.party_name,
+        rows.append({"source": SRC_PARTY, "record": p.parent, "name": p.party_name,
                      "id_number": p.id_number, "role": p.role, "matter": p.parent})
 
     for m in frappe.get_all("Legal Matter", filters={"opposing_party": ["is", "set"]},
                             fields=["name", "opposing_party"]):
-        rows.append({"source": "Matter (adverse party)", "record": m.name, "name": m.opposing_party,
+        rows.append({"source": SRC_MATTER_ADVERSE, "record": m.name, "name": m.opposing_party,
                      "role": "Adverse party", "matter": m.name})
 
     for k in frappe.get_all(
@@ -58,20 +74,18 @@ def gather_candidates(exclude_check=None):
         fields=["name", "party_name", "id_number", "adverse_party", "other_names", "status"],
     ):
         base = {"record": k.name, "role": f"Check: {k.status}"}
-        rows.append({**base, "source": "Prior check (client)", "name": k.party_name, "id_number": k.id_number})
+        rows.append({**base, "source": SRC_CHECK_CLIENT, "name": k.party_name, "id_number": k.id_number})
         if k.adverse_party:
-            rows.append({**base, "source": "Prior check (adverse)", "name": k.adverse_party})
-        for line in (k.other_names or "").splitlines():
-            if line.strip():
-                rows.append({**base, "source": "Prior check (related)", "name": line.strip()})
+            rows.append({**base, "source": SRC_CHECK_ADVERSE, "name": k.adverse_party})
+        for name in split_names(k.other_names):
+            rows.append({**base, "source": SRC_CHECK_RELATED, "name": name})
     return rows
 
 
 def search_terms(doc):
     terms = [("Client", doc.party_name, doc.id_number)]
-    for line in (doc.other_names or "").splitlines():
-        if line.strip():
-            terms.append(("Related", line.strip(), None))
+    for name in split_names(doc.other_names):
+        terms.append(("Related", name, None))
     if (doc.adverse_party or "").strip():
         terms.append(("Adverse", doc.adverse_party.strip(), None))
     return terms
@@ -84,16 +98,18 @@ def _save(doc):
 
 def run_search(name):
     doc = frappe.get_doc("Conflict Check", name)
+    doc.check_permission("write")
     if doc.status in FINAL:
         frappe.throw(_("This check is already decided ({0}).").format(doc.status))
 
     candidates = gather_candidates(exclude_check=doc.name)
-    threshold = match_threshold()
+    threshold = conflict_settings.match_threshold()
+    informational = conflict_settings.informational_pairs()
     doc.set("hits", [])
     blocking = 0
     for kind, term, ident in search_terms(doc):
         for h in find_matches(term, ident, candidates, threshold):
-            blocks = (kind, h["source"]) not in INFORMATIONAL
+            blocks = (kind, h["source"]) not in informational
             blocking += int(blocks)
             doc.append("hits", {
                 "term_type": kind, "term": term, "source": h["source"], "record": h["record"],
@@ -102,7 +118,7 @@ def run_search(name):
             })
 
     doc.hit_count = len(doc.hits)
-    doc.status = "Conflict Found" if blocking else "No Conflict"
+    doc.status = STATUS_FOUND if blocking else STATUS_NO_CONFLICT
     doc.run_by = frappe.session.user
     doc.run_on = now_datetime()
     _save(doc)
@@ -110,11 +126,14 @@ def run_search(name):
 
 
 def decide(name, status, notes):
+    doc = frappe.get_doc("Conflict Check", name)
+    doc.check_permission("write")
     require_partner()
+    if status not in PARTNER_DECISIONS:
+        frappe.throw(_("A decision must be one of: {0}.").format(", ".join(PARTNER_DECISIONS)))
     if not (notes or "").strip():
         frappe.throw(_("Please record the reason for this decision."))
-    doc = frappe.get_doc("Conflict Check", name)
-    if doc.status != "Conflict Found":
+    if doc.status != STATUS_FOUND:
         frappe.throw(_("Only a check with conflicts found can be cleared or declined."))
     doc.clearance_notes = notes.strip()
     doc.cleared_by = frappe.session.user
@@ -150,27 +169,60 @@ def create_customer(name):
     return customer
 
 
-def enforce_gate(doc, method=None):
-    """doc_events validate hook for Legal Matter."""
-    if not gate_enabled():
-        return
-    if not (doc.is_new() or doc.has_value_changed("conflict_check")):
-        return
+# --- the gate on Legal Matter ----------------------------------------------------------------
 
-    if not doc.get("conflict_check"):
-        frappe.throw(_("A cleared Conflict Check is required before a matter can be opened."),
-                     title=_("Conflict Check required"))
+def _party_rows(doc):
+    """Rows of every child table on the document that holds Matter Parties."""
+    rows = []
+    for df in frappe.get_meta(doc.doctype).get_table_fields():
+        if df.options == PARTY_DOCTYPE:
+            rows.extend(doc.get(df.fieldname) or [])
+    return rows
 
+
+def _party_signature(doc):
+    return sorted(
+        ((r.get("party_name") or "").strip().casefold(), (r.get("id_number") or "").strip().casefold(),
+         (r.get("role") or "").strip().casefold())
+        for r in _party_rows(doc)
+    )
+
+
+def _coverage_inputs_changed(doc):
+    """Has anything the check is supposed to cover changed since the last save?"""
+    before = doc.get_doc_before_save()
+    if not before:
+        return True
+    if doc.has_value_changed("customer") or doc.has_value_changed("opposing_party"):
+        return True
+    return _party_signature(doc) != _party_signature(before)
+
+
+def _load_check(name):
     check = frappe.db.get_value(
-        "Conflict Check", doc.conflict_check, ["status", "customer", "adverse_party"], as_dict=True
+        "Conflict Check", name,
+        ["status", "customer", "party_name", "id_number", "adverse_party", "other_names", "run_on", "cleared_on"],
+        as_dict=True,
     )
     if not check:
-        frappe.throw(_("Conflict Check {0} does not exist.").format(doc.conflict_check))
-    if check.status not in CLEARED:
-        frappe.throw(_("Conflict Check {0} is '{1}'. It must be clear, or cleared by a partner, first.").format(
-            doc.conflict_check, check.status), title=_("Conflict Check not clear"))
-    if check.customer and check.customer != doc.customer:
-        frappe.throw(_("Conflict Check {0} was cleared for a different client.").format(doc.conflict_check))
+        frappe.throw(_("Conflict Check {0} does not exist.").format(name))
+    return check
+
+
+def _names(items):
+    return ", ".join(frappe.bold(escape_html(i["name"])) for i in items)
+
+
+def _enforce_freshness(doc, check):
+    """Rules that apply when a check is attached to a matter, not on every later save."""
+    days = conflict_settings.clearance_validity_days()
+    decided = check.cleared_on or check.run_on
+    if clearance_expired(getdate(decided) if decided else None, getdate(today()), days):
+        frappe.throw(
+            _("Conflict Check {0} was decided on {1}, which is more than {2} days ago. Run a new check.").format(
+                doc.conflict_check, formatdate(decided) if decided else _("an unknown date"), days),
+            title=_("Conflict Check expired"),
+        )
 
     used = frappe.db.get_value(
         "Legal Matter", {"conflict_check": doc.conflict_check, "name": ["!=", doc.name or ""]}, "name"
@@ -179,7 +231,67 @@ def enforce_gate(doc, method=None):
         frappe.throw(_("Conflict Check {0} is already used by matter {1}. Run a new check for this matter.").format(
             doc.conflict_check, used))
 
-    opposing = (doc.get("opposing_party") or "").strip()
-    if opposing and name_similarity(opposing, check.adverse_party or "") < match_threshold():
-        frappe.throw(_("The opposing party ({0}) was not covered by Conflict Check {1}. "
-                       "Run a new check that includes it.").format(opposing, doc.conflict_check))
+
+def _enforce_client(doc, check, threshold):
+    if not doc.get("customer"):
+        return
+    if check.customer:
+        if check.customer != doc.customer:
+            frappe.throw(_("Conflict Check {0} was cleared for a different client.").format(doc.conflict_check))
+        return
+    # The check was cleared before a Customer existed, so compare by identifier or name.
+    cust = frappe.db.get_value("Customer", doc.customer, ["customer_name", "tax_id"], as_dict=True)
+    if cust and not same_party(cust.customer_name, cust.tax_id, check.party_name, check.id_number, threshold):
+        frappe.throw(_("Conflict Check {0} was cleared for a different client.").format(doc.conflict_check))
+
+
+def _enforce_parties(doc, check, threshold):
+    adverse_names = [n for n in [check.adverse_party, *split_names(check.other_names)] if (n or "").strip()]
+    all_names = [check.party_name, *adverse_names]
+    check_ids = usable_ids(check.id_number)
+
+    # The opposing party must have been searched as an adverse (or related) name.
+    opposing = [{"name": (doc.get("opposing_party") or "").strip()}]
+    gaps = uncovered_parties(opposing, adverse_names, set(), threshold)
+
+    # Every other party on the matter must be somewhere in the check, unless its role is exempt.
+    parties = [
+        {"name": r.get("party_name"), "id_number": r.get("id_number"), "role": r.get("role")}
+        for r in _party_rows(doc)
+    ]
+    gaps += uncovered_parties(parties, all_names, check_ids, threshold,
+                              exempt_roles=conflict_settings.exempt_party_roles())
+    if gaps:
+        frappe.throw(
+            _("These parties were not covered by Conflict Check {0}: {1}. Run a new check that includes them.").format(
+                doc.conflict_check, _names(gaps)),
+            title=_("Parties not covered"),
+        )
+
+
+def enforce_gate(doc, method=None):
+    """doc_events validate hook for Legal Matter.
+
+    Opening a matter (new, or a different check attached) applies every rule. Any later save
+    re-checks only that the check still covers the client and parties, if those changed.
+    """
+    if not conflict_settings.gate_enabled():
+        return
+    opening = doc.is_new() or doc.has_value_changed("conflict_check")
+    if not (opening or _coverage_inputs_changed(doc)):
+        return
+
+    if not doc.get("conflict_check"):
+        frappe.throw(_("A cleared Conflict Check is required before a matter can be opened."),
+                     title=_("Conflict Check required"))
+
+    check = _load_check(doc.conflict_check)
+    if check.status not in CLEARED:
+        frappe.throw(_("Conflict Check {0} is '{1}'. It must be clear, or cleared by a partner, first.").format(
+            doc.conflict_check, check.status), title=_("Conflict Check not clear"))
+
+    threshold = conflict_settings.match_threshold()
+    if opening:
+        _enforce_freshness(doc, check)
+    _enforce_client(doc, check, threshold)
+    _enforce_parties(doc, check, threshold)
