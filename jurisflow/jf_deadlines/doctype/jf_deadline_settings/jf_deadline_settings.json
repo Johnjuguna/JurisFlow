@@ -5,7 +5,7 @@
  "custom": 0,
  "engine": "InnoDB",
  "creation": "2026-11-19 09:11:10.142962",
- "modified": "2026-11-19 09:11:10.145384",
+ "modified": "2026-11-25 10:50:43.670111",
  "owner": "Administrator",
  "modified_by": "Administrator",
  "istable": 0,
@@ -19,6 +19,7 @@
   "vacations",
   "section_policy",
   "escalate_within_days",
+  "max_count_steps",
   "verifier_roles"
  ],
  "fields": [
@@ -53,6 +54,14 @@
    "label": "Roles allowed to verify rules",
    "options": "Deadline Verifier Role",
    "description": "Only users with one of these roles can verify a Deadline Rule."
+  },
+  {
+   "fieldname": "max_count_steps",
+   "fieldtype": "Int",
+   "label": "Max Counting Steps",
+   "default": "20000",
+   "non_negative": 1,
+   "description": "Safety limit for day counting. Leave at the default unless advised."
   }
  ],
  "permissions": [
