@@ -1,5 +1,5 @@
 import frappe
-from jurisflow.tests.integration.helpers import make_cleared_check
+from jurisflow.tests.integration.helpers import make_cleared_check, make_cleared_customer
 from frappe.utils import add_days, today
 
 
@@ -15,15 +15,11 @@ def run():
         if not frappe.db.exists("Court", n):
             frappe.get_doc({"doctype": "Court", "court_name": n, "court_level": lvl, "station": st}).insert()
 
-    customer = frappe.db.get_value("Customer", {}, "name")
-    if not customer:
-        customer = frappe.get_doc(
-            {"doctype": "Customer", "customer_name": "Test Client Ltd", "customer_type": "Company"}
-        ).insert().name
+    customer, check_name = make_cleared_customer()
 
     m = frappe.get_doc({
         "doctype": "Legal Matter", "title": "TEST Client v Test Opponent", "customer": customer,
-        "conflict_check": make_cleared_check(),
+        "conflict_check": check_name,
         "court": "Milimani Law Courts", "case_no": "HCCC E001 of 2026",
         "responsible_advocate": "Administrator", "status": "Open",
     }).insert()

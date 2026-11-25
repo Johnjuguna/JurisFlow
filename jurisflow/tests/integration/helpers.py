@@ -12,3 +12,12 @@ def make_cleared_check():
     status = run_search(doc.name)
     assert status == "No Conflict", status
     return doc.name
+
+
+def make_cleared_customer():
+    """A unique Customer plus a clear Conflict Check cleared for that same name. Returns (customer, check)."""
+    check = make_cleared_check()
+    party = frappe.db.get_value("Conflict Check", check, "party_name")
+    cust = frappe.get_doc({"doctype": "Customer", "customer_name": party,
+                           "customer_type": "Company"}).insert()
+    return cust.name, check
