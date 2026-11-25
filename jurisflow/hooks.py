@@ -299,3 +299,9 @@ add_to_apps_screen = [
         "has_permission": "erpnext.check_app_permission",
     }
 ]
+
+# --- JF Billing: Fee Note marks time entries billed ---
+doc_events.setdefault("Fee Note", {}).update({
+    "on_submit": "jurisflow.services.fee_note_service.on_submit",
+    "on_cancel": "jurisflow.services.fee_note_service.on_cancel",
+})
