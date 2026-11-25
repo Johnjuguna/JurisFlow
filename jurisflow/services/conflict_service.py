@@ -143,6 +143,18 @@ def decide(name, status, notes):
     return doc.status
 
 
+def _default_leaf(doctype, setting_field):
+    """The Selling Settings default if it is a real (non-group) record, else the first real one.
+    Group records such as 'All Customer Groups' cannot be attached to a Customer."""
+    value = frappe.db.get_single_value("Selling Settings", setting_field)
+    if value and not frappe.db.get_value(doctype, value, "is_group"):
+        return value
+    leaf = frappe.db.get_value(doctype, {"is_group": 0}, "name", order_by="lft asc")
+    if not leaf:
+        frappe.throw(_("Create a {0} that is not a group, or set a default in Selling Settings.").format(_(doctype)))
+    return leaf
+
+
 def create_customer(name):
     doc = frappe.get_doc("Conflict Check", name)
     doc.check_permission("write")
@@ -158,8 +170,8 @@ def create_customer(name):
             "doctype": "Customer",
             "customer_name": client_name,
             "customer_type": doc.party_type,
-            "customer_group": frappe.db.get_single_value("Selling Settings", "customer_group") or "All Customer Groups",
-            "territory": frappe.db.get_single_value("Selling Settings", "territory") or "All Territories",
+            "customer_group": _default_leaf("Customer Group", "customer_group"),
+            "territory": _default_leaf("Territory", "territory"),
             "tax_id": doc.id_number or None,  # so future conflict searches can match on it
         }).insert(ignore_permissions=True)
         customer = cust.name
