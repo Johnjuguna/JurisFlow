@@ -5,7 +5,7 @@
  "custom": 0,
  "engine": "InnoDB",
  "creation": "2026-11-19 09:11:10.142962",
- "modified": "2026-11-19 09:11:10.145384",
+ "modified": "2026-11-25 10:50:02.961853",
  "owner": "Administrator",
  "modified_by": "Administrator",
  "istable": 0,
@@ -28,6 +28,9 @@
   "section_tracking",
   "met_on",
   "override_reason",
+  "rolled_from",
+  "calendar_warnings",
+  "superseded_from_status",
   "rule_snapshot",
   "reminders_sent",
   "escalated_on"
@@ -77,7 +80,8 @@
    "fieldtype": "Date",
    "label": "Due Date",
    "reqd": 1,
-   "in_list_view": 1
+   "in_list_view": 1,
+   "search_index": 1
   },
   {
    "fieldname": "status",
@@ -86,7 +90,8 @@
    "options": "Open\nMet\nMissed\nWaived\nSuperseded",
    "default": "Open",
    "in_list_view": 1,
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "search_index": 1
   },
   {
    "fieldname": "assigned_to",
@@ -133,6 +138,25 @@
    "fieldname": "escalated_on",
    "fieldtype": "Datetime",
    "label": "Escalated On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rolled_from",
+   "fieldtype": "Date",
+   "label": "Rolled From",
+   "read_only": 1,
+   "description": "Date before moving to a working day, if it was moved"
+  },
+  {
+   "fieldname": "calendar_warnings",
+   "fieldtype": "Small Text",
+   "label": "Calendar Warnings",
+   "read_only": 1
+  },
+  {
+   "fieldname": "superseded_from_status",
+   "fieldtype": "Data",
+   "label": "Status Before Superseded",
    "read_only": 1
   }
  ],

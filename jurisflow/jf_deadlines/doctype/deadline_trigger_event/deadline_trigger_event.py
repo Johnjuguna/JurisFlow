@@ -11,7 +11,7 @@ class DeadlineTriggerEvent(Document):
     def on_update(self):
         if self.flags.in_insert:
             return
-        if self.has_value_changed("event_date") or self.has_value_changed("trigger_type"):
+        if any(self.has_value_changed(f) for f in ("event_date", "trigger_type", "matter")):
             from jurisflow.services import deadline_service
             deadline_service.regenerate_for_event(self)
 
