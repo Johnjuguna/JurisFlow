@@ -13,7 +13,12 @@ frappe.ui.form.on("Conflict Check", {
 
 		const decide = (method) =>
 			frappe.prompt(
-				{ fieldname: "notes", fieldtype: "Small Text", label: __("Reason / Notes"), reqd: 1 },
+				{
+					fieldname: "notes",
+					fieldtype: "Small Text",
+					label: __("Reason / Notes"),
+					reqd: 1,
+				},
 				(v) => call(method, { notes: v.notes }),
 				__("Partner decision")
 			);
@@ -26,8 +31,16 @@ frappe.ui.form.on("Conflict Check", {
 			});
 		}
 		if (s === "Conflict Found") {
-			frm.add_custom_button(__("Clear Conflict"), () => decide("clear_conflict"), __("Partner"));
-			frm.add_custom_button(__("Decline Instructions"), () => decide("decline_conflict"), __("Partner"));
+			frm.add_custom_button(
+				__("Clear Conflict"),
+				() => decide("clear_conflict"),
+				__("Partner")
+			);
+			frm.add_custom_button(
+				__("Decline Instructions"),
+				() => decide("decline_conflict"),
+				__("Partner")
+			);
 		}
 		if (["No Conflict", "Cleared by Partner"].includes(s) && !frm.doc.customer) {
 			frm.add_custom_button(__("Create Customer"), () => call("create_customer"));

@@ -1,0 +1,178 @@
+{
+ "doctype": "DocType",
+ "name": "Fee Note",
+ "module": "JF Billing",
+ "custom": 0,
+ "istable": 0,
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "fields": [
+  {
+   "fieldname": "matter",
+   "label": "Matter",
+   "fieldtype": "Link",
+   "options": "Legal Matter",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "customer",
+   "label": "Client",
+   "fieldtype": "Link",
+   "options": "Customer",
+   "fetch_from": "matter.customer",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company"
+  },
+  {
+   "fieldname": "posting_date",
+   "label": "Date",
+   "fieldtype": "Date",
+   "default": "Today",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "label": "",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mode",
+   "label": "Mode",
+   "fieldtype": "Select",
+   "options": "Time Based\nScale Based\nFixed Fee",
+   "default": "Time Based",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fee_scale",
+   "label": "Fee Scale",
+   "fieldtype": "Link",
+   "options": "Fee Scale",
+   "depends_on": "eval:doc.mode=='Scale Based'"
+  },
+  {
+   "fieldname": "transaction_value",
+   "label": "Transaction Value",
+   "fieldtype": "Currency",
+   "depends_on": "eval:doc.mode=='Scale Based'"
+  },
+  {
+   "fieldname": "section_lines",
+   "label": "Lines",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "lines",
+   "label": "Lines",
+   "fieldtype": "Table",
+   "options": "Fee Note Line",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_totals",
+   "label": "Totals",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_fees",
+   "label": "Total Fees",
+   "fieldtype": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_disbursements",
+   "label": "Total Disbursements",
+   "fieldtype": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "label": "",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vat_rate",
+   "label": "VAT Rate %",
+   "fieldtype": "Float",
+   "default": 16
+  },
+  {
+   "fieldname": "vat_amount",
+   "label": "VAT Amount",
+   "fieldtype": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "label": "Grand Total",
+   "fieldtype": "Currency",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_inv",
+   "label": "Invoicing",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "tax_template",
+   "label": "Tax Template",
+   "fieldtype": "Link",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "label": "Sales Invoice",
+   "fieldtype": "Link",
+   "options": "Sales Invoice",
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "submit": 1,
+   "cancel": 1
+  },
+  {
+   "role": "Advocate",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "submit": 1,
+   "cancel": 1
+  },
+  {
+   "role": "Legal Admin",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "FN-.YYYY.-.#####"
+}

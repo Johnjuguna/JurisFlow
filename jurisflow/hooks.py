@@ -261,35 +261,58 @@ required_apps = ["frappe", "erpnext"]
 after_install = "jurisflow.setup.install.after_install"
 
 scheduler_events = {
-    "daily": ["jurisflow.jobs.reminder_jobs.send_hearing_reminders"],
-    "hourly": ["jurisflow.jobs.hearing_jobs.escalate_unconfirmed_hearings"],
-    "cron": {"0 17 * * *": ["jurisflow.jobs.hearing_jobs.send_daily_court_brief"]},
+	"daily": ["jurisflow.jobs.reminder_jobs.send_hearing_reminders"],
+	"hourly": ["jurisflow.jobs.hearing_jobs.escalate_unconfirmed_hearings"],
+	"cron": {"0 17 * * *": ["jurisflow.jobs.hearing_jobs.send_daily_court_brief"]},
 }
 
 _matter_refresh = "jurisflow.services.matter_service.refresh_from_doc"
 
 doc_events = {
-    "Legal Matter": {"validate": "jurisflow.services.conflict_service.enforce_gate"},
-    "Matter Task": {"on_update": _matter_refresh, "after_delete": _matter_refresh},
-    "Legal Time Entry": {
-        "validate": "jurisflow.services.matter_service.time_entry_validate",
-        "on_update": _matter_refresh,
-        "after_delete": _matter_refresh,
-    },
+	"Legal Matter": {"validate": "jurisflow.services.conflict_service.enforce_gate"},
+	"Matter Task": {"on_update": _matter_refresh, "after_delete": _matter_refresh},
+	"Legal Time Entry": {
+		"validate": "jurisflow.services.matter_service.time_entry_validate",
+		"on_update": _matter_refresh,
+		"after_delete": _matter_refresh,
+	},
 }
 
 
 # --- JF Deadlines (managed block) ---
 from jurisflow.deadline_hooks import merge_doc_events, merge_scheduler
+
 scheduler_events = merge_scheduler(scheduler_events)
 doc_events = merge_doc_events(doc_events)
 
+# --- JF Billing: free time entries when an invoice is cancelled or deleted ---
+doc_events.setdefault("Sales Invoice", {}).update(
+	{
+		"before_cancel": "jurisflow.services.billing_service.release_entries",
+		"on_trash": "jurisflow.services.billing_service.release_entries",
+	}
+)
+
 add_to_apps_screen = [
-    {
-        "name": "jurisflow",
-        "logo": "/assets/jurisflow/images/jurisflow.svg",
-        "title": "JurisFlow",
-        "route": "/desk/jf-matters",
-        "has_permission": "erpnext.check_app_permission",
-    }
+	{
+		"name": "jurisflow",
+		"logo": "/assets/jurisflow/images/jurisflow.svg",
+		"title": "JurisFlow",
+		"route": "/desk/jf-matters",
+		"has_permission": "erpnext.check_app_permission",
+	}
 ]
+
+# --- JF Billing: Fee Note marks time entries billed ---
+doc_events.setdefault("Fee Note", {}).update(
+	{
+		"on_submit": [
+			"jurisflow.services.fee_note_service.on_submit",
+			"jurisflow.services.fee_note_invoice.create_invoice_on_submit",
+		],
+		"on_cancel": [
+			"jurisflow.services.fee_note_service.on_cancel",
+			"jurisflow.services.fee_note_invoice.release_draft_invoice",
+		],
+	}
+)

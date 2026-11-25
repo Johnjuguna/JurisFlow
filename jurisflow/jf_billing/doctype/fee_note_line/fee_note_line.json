@@ -1,0 +1,65 @@
+{
+ "doctype": "DocType",
+ "name": "Fee Note Line",
+ "module": "JF Billing",
+ "custom": 0,
+ "istable": 1,
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "fields": [
+  {
+   "fieldname": "line_type",
+   "label": "Type",
+   "fieldtype": "Select",
+   "options": "Fee\nDisbursement",
+   "default": "Fee",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "description",
+   "label": "Description",
+   "fieldtype": "Small Text",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "qty",
+   "label": "Qty / Hours",
+   "fieldtype": "Float",
+   "default": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "rate",
+   "label": "Rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "amount",
+   "label": "Amount",
+   "fieldtype": "Currency",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "vat_applicable",
+   "label": "VAT",
+   "fieldtype": "Check",
+   "default": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "time_entry",
+   "label": "Time Entry",
+   "fieldtype": "Link",
+   "options": "Legal Time Entry",
+   "read_only": 1
+  }
+ ],
+ "permissions": []
+}
