@@ -1,0 +1,120 @@
+{%- set company = frappe.db.get_value("Company", doc.company, ["company_name", "tax_id", "default_bank_account"], as_dict=True) -%}
+{%- set bank = frappe.db.get_value("Bank Account", company.default_bank_account, ["account_name", "bank", "bank_account_no", "branch_code"], as_dict=True) if company and company.default_bank_account else None -%}
+{%- set matter = frappe.db.get_value("Legal Matter", doc.get("matter"), ["title", "court", "responsible_advocate"], as_dict=True) if doc.get("matter") else None -%}
+{%- set is_tax = doc.taxes | length > 0 -%}
+<style>
+	.jf { --jf-accent: #14456e; --jf-muted: #5b6770; font-size: 11px; color: #1c2329; }
+	.jf h1 { font-size: 22px; letter-spacing: 3px; margin: 0; color: #1c2329; }
+	.jf .tag { display: inline-block; background: var(--jf-accent); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 8px; margin-bottom: 4px; }
+	.jf .muted { color: var(--jf-muted); }
+	.jf .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+	.jf .box { border: 1px solid #d5dbe0; }
+	.jf .box div { display: flex; justify-content: space-between; padding: 4px 10px; border-bottom: 1px solid #e6eaee; min-width: 260px; }
+	.jf .box div:last-child { border-bottom: 0; }
+	.jf table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+	.jf th { background: var(--jf-accent); color: #fff; text-align: left; font-size: 9px; letter-spacing: 1px; padding: 6px 8px; }
+	.jf td { padding: 8px; border-bottom: 1px solid #e6eaee; vertical-align: top; }
+	.jf .num { text-align: right; white-space: nowrap; }
+	.jf .totals { width: 280px; margin-left: auto; }
+	.jf .totals td { padding: 5px 8px; border-bottom: 1px solid #e6eaee; }
+	.jf .grand td { font-weight: 700; font-size: 13px; border-top: 2px solid var(--jf-accent); }
+	.jf .note { font-size: 10px; color: var(--jf-muted); margin-top: 14px; }
+</style>
+
+<div class="jf">
+	{%- if not letter_head %}
+	<div style="border-bottom: 3px solid var(--jf-accent); padding-bottom: 8px; margin-bottom: 18px;">
+		<div style="font-size: 18px; font-weight: 700; color: var(--jf-accent);">{{ company.company_name }}</div>
+		<div class="muted">{{ doc.company_address_display or "" }}</div>
+		{%- if company.tax_id %}<div class="muted">{{ _("PIN") }}: {{ company.tax_id }}</div>{% endif %}
+	</div>
+	{%- endif %}
+
+	<div class="row">
+		<h1>{{ _("TAX INVOICE") if is_tax else _("FEE NOTE") }}</h1>
+		<div style="text-align: right;">
+			<div class="muted" style="font-size: 9px; letter-spacing: 1px;">{{ _("INVOICE NO.") }}</div>
+			<div style="font-size: 15px; font-weight: 700; color: var(--jf-accent);">{{ doc.name }}</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div>
+			<span class="tag">{{ _("INVOICE TO") }}</span>
+			<div style="font-size: 14px; font-weight: 700;">{{ doc.customer_name }}</div>
+			{%- if doc.tax_id %}<div class="muted">{{ _("PIN") }}: <b style="color:#1c2329">{{ doc.tax_id }}</b></div>{% endif %}
+			{%- if doc.address_display %}<div class="muted">{{ doc.address_display }}</div>{% endif %}
+		</div>
+		<div class="box">
+			<div><span class="muted">{{ _("INVOICE DATE") }}</span><b>{{ doc.get_formatted("posting_date") }}</b></div>
+			<div><span class="muted">{{ _("PAYMENT DUE") }}</span><b>{{ doc.get_formatted("due_date") }}</b></div>
+			<div><span class="muted">{{ _("CURRENCY") }}</span><b>{{ doc.currency }}</b></div>
+		</div>
+	</div>
+
+	{%- if matter %}
+	<div class="row" style="margin-top: -6px;">
+		<div>
+			<span class="tag">{{ _("MATTER") }}</span>
+			<div style="font-weight: 700;">{{ matter.title }}</div>
+			<div class="muted">
+				{{ doc.matter }}
+				{%- if matter.court %} &middot; {{ matter.court }}{% endif %}
+				{%- if matter.responsible_advocate %} &middot; {{ _("Advocate") }}: {{ frappe.db.get_value("User", matter.responsible_advocate, "full_name") or matter.responsible_advocate }}{% endif %}
+			</div>
+		</div>
+	</div>
+	{%- endif %}
+
+	<table>
+		<thead>
+			<tr>
+				<th style="width: 5%;">#</th>
+				<th>{{ _("DESCRIPTION") }}</th>
+				<th class="num" style="width: 9%;">{{ _("QTY") }}</th>
+				<th class="num" style="width: 15%;">{{ _("RATE") }}</th>
+				<th class="num" style="width: 17%;">{{ _("AMOUNT") }} ({{ doc.currency }})</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for row in doc.items %}
+			<tr>
+				<td>{{ loop.index }}</td>
+				<td>
+					<b>{{ row.item_name }}</b>
+					{%- if row.description and row.description != row.item_name %}<div class="muted">{{ row.description }}</div>{% endif %}
+				</td>
+				<td class="num">{{ row.get_formatted("qty") }}</td>
+				<td class="num">{{ row.get_formatted("rate") }}</td>
+				<td class="num">{{ row.get_formatted("amount") }}</td>
+			</tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+
+	<table class="totals">
+		<tr><td>{{ _("Subtotal") }}</td><td class="num">{{ doc.get_formatted("net_total") }}</td></tr>
+		{%- for tax in doc.taxes %}
+		<tr><td>{{ tax.description }}{% if tax.rate %} @ {{ tax.rate }}%{% endif %}</td><td class="num">{{ tax.get_formatted("tax_amount") }}</td></tr>
+		{%- endfor %}
+		<tr class="grand"><td>{{ _("Total") }} ({{ doc.currency }})</td><td class="num">{{ doc.get_formatted("grand_total") }}</td></tr>
+		{%- if doc.outstanding_amount != doc.grand_total %}
+		<tr><td>{{ _("Balance due") }}</td><td class="num">{{ doc.get_formatted("outstanding_amount") }}</td></tr>
+		{%- endif %}
+	</table>
+
+	<div style="margin-bottom: 14px;">
+		<span class="tag">{{ _("AMOUNT IN WORDS") }}</span>
+		<div style="font-weight: 700;">{{ doc.in_words }}</div>
+	</div>
+
+	{%- if bank %}
+	<div style="margin-bottom: 14px;">
+		<span class="tag">{{ _("PAYMENT DETAILS") }}</span>
+		<div>{{ bank.account_name }} &middot; {{ bank.bank }}{% if bank.branch_code %} ({{ bank.branch_code }}){% endif %}</div>
+		<div class="muted">{{ _("Account No.") }} {{ bank.bank_account_no }}</div>
+	</div>
+	{%- endif %}
+
+	{%- if doc.terms %}<div class="note">{{ doc.terms }}</div>{% endif %}
+</div>
