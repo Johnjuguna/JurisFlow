@@ -150,7 +150,7 @@ def run():
 
 	from jurisflow.jf_matters.report.matters_without_next_action.matters_without_next_action import execute
 
-	cols, data = execute()
+	_cols, data = execute()
 	say("report runs", isinstance(data, list), f"{len(data)} row(s)")
 
 	frappe.db.commit()

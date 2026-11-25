@@ -157,7 +157,7 @@ def escalate_unconfirmed_hearings():
 			"attendance_confirmed": 0,
 			"hearing_date": ["between", [today(), add_days(today(), 2)]],
 		},
-		fields=HEARING_FIELDS + ["reminded_on", "escalated_on"],
+		fields=[*HEARING_FIELDS, "reminded_on", "escalated_on"],
 	)
 
 	for h in hearings:

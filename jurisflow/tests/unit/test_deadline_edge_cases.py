@@ -1,5 +1,6 @@
 import unittest
 from datetime import date
+from typing import ClassVar
 
 from jurisflow.engines.deadline_calc import add_months, compute_due_date, compute_with_trace, reminders_due
 
@@ -87,7 +88,7 @@ class TestGuards(unittest.TestCase):
 
 
 class TestReminders(unittest.TestCase):
-	OFFSETS = [
+	OFFSETS: ClassVar[list] = [
 		{"days_before": 7, "recipient": "a"},
 		{"days_before": 3, "recipient": "a"},
 		{"days_before": 1, "recipient": "a"},
