@@ -24,5 +24,5 @@ class FeeNote(Document):
 
 	def before_cancel(self):
 		inv = self.sales_invoice
-		if inv and frappe.db.get_value("Sales Invoice", inv, "docstatus") != 2:
+		if inv and frappe.db.get_value("Sales Invoice", inv, "docstatus") == 1:
 			frappe.throw(_("Cancel Sales Invoice {0} first.").format(inv))

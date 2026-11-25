@@ -97,3 +97,33 @@ def run_flow():
 	say("entry marked billed", frappe.db.count("Legal Time Entry", {"matter": m.name, "billed": 1}) == 1)
 	fn.cancel()
 	say("cancel releases entry", frappe.db.count("Legal Time Entry", {"matter": m.name, "billed": 0}) == 1)
+
+
+def run_invoice():
+	frappe.set_user("Administrator")
+	m = _matter()
+	fn = frappe.get_doc(
+		{
+			"doctype": "Fee Note",
+			"matter": m.name,
+			"lines": [
+				{"line_type": "Fee", "description": "Advice", "qty": 1, "rate": 10000, "vat_applicable": 1},
+				{
+					"line_type": "Disbursement",
+					"description": "Filing fee",
+					"qty": 1,
+					"rate": 1000,
+					"vat_applicable": 0,
+				},
+			],
+		}
+	).insert()
+	fn.submit()
+	fn.reload()
+	inv = frappe.get_doc("Sales Invoice", fn.sales_invoice)
+	say("invoice created", bool(inv.name), inv.name)
+	say("net total matches", inv.net_total == fn.total_fees + fn.total_disbursements, inv.net_total)
+	say("VAT matches fee note", inv.total_taxes_and_charges == fn.vat_amount, inv.total_taxes_and_charges)
+	say("grand total matches", inv.grand_total == fn.grand_total, inv.grand_total)
+	fn.cancel()
+	say("draft invoice removed on cancel", not frappe.db.exists("Sales Invoice", inv.name))

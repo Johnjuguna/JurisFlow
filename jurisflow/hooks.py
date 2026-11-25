@@ -306,7 +306,13 @@ add_to_apps_screen = [
 # --- JF Billing: Fee Note marks time entries billed ---
 doc_events.setdefault("Fee Note", {}).update(
 	{
-		"on_submit": "jurisflow.services.fee_note_service.on_submit",
-		"on_cancel": "jurisflow.services.fee_note_service.on_cancel",
+		"on_submit": [
+			"jurisflow.services.fee_note_service.on_submit",
+			"jurisflow.services.fee_note_invoice.create_invoice_on_submit",
+		],
+		"on_cancel": [
+			"jurisflow.services.fee_note_service.on_cancel",
+			"jurisflow.services.fee_note_invoice.release_draft_invoice",
+		],
 	}
 )
