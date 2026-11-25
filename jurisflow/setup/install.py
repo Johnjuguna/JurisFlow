@@ -1,6 +1,10 @@
 import frappe
 
-ROLES = ["Advocate", "Law Clerk", "Legal Admin"]
+import json
+import pathlib
+
+CONFIG = pathlib.Path(__file__).resolve().parents[1] / "config" / "deadline_config.json"
+ROLES = json.loads(CONFIG.read_text())["roles"]
 AREAS = ["Litigation", "Conveyancing", "Corporate and Commercial",
          "Family", "Probate and Succession", "Employment"]
 

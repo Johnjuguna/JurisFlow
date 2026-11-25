@@ -1,0 +1,31 @@
+{
+ "doctype": "DocType",
+ "name": "Deadline Verifier Role",
+ "module": "JF Deadlines",
+ "custom": 0,
+ "engine": "InnoDB",
+ "creation": "2026-11-19 09:11:10.142962",
+ "modified": "2026-11-19 09:11:10.142962",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "role"
+ ],
+ "fields": [
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "label": "Role",
+   "options": "Role",
+   "reqd": 1,
+   "in_list_view": 1
+  }
+ ],
+ "permissions": []
+}

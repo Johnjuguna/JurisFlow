@@ -1,0 +1,40 @@
+{
+	"actions": [],
+	"creation": "2026-11-24 00:00:00.000000",
+	"doctype": "DocType",
+	"editable_grid": 1,
+	"engine": "InnoDB",
+	"field_order": [
+		"searched_as",
+		"found_in"
+	],
+	"fields": [
+		{
+			"fieldname": "searched_as",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Searched As",
+			"options": "Client\nRelated\nAdverse",
+			"reqd": 1
+		},
+		{
+			"fieldname": "found_in",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Found In",
+			"options": "Customer\nMatter Party\nMatter (adverse party)\nPrior check (client)\nPrior check (adverse)\nPrior check (related)",
+			"reqd": 1
+		}
+	],
+	"istable": 1,
+	"links": [],
+	"modified": "2026-11-24 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "JF Compliance",
+	"name": "Conflict Informational Rule",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": []
+}

@@ -3,7 +3,7 @@ app_title = "JurisFlow"
 app_publisher = "John Njuguna"
 app_description = "Law firm practice management for ERPNext"
 app_email = "kiangainjuguna@gmail.com"
-app_license = "mit"
+app_license = "Proprietary"
 
 # Apps
 # ------------------
@@ -269,6 +269,7 @@ scheduler_events = {
 _matter_refresh = "jurisflow.services.matter_service.refresh_from_doc"
 
 doc_events = {
+    "Legal Matter": {"validate": "jurisflow.services.conflict_service.enforce_gate"},
     "Matter Task": {"on_update": _matter_refresh, "after_delete": _matter_refresh},
     "Legal Time Entry": {
         "validate": "jurisflow.services.matter_service.time_entry_validate",
@@ -276,3 +277,19 @@ doc_events = {
         "after_delete": _matter_refresh,
     },
 }
+
+
+# --- JF Deadlines (managed block) ---
+from jurisflow.deadline_hooks import merge_doc_events, merge_scheduler
+scheduler_events = merge_scheduler(scheduler_events)
+doc_events = merge_doc_events(doc_events)
+
+add_to_apps_screen = [
+    {
+        "name": "jurisflow",
+        "logo": "/assets/jurisflow/images/jurisflow.svg",
+        "title": "JurisFlow",
+        "route": "/desk/jf-matters",
+        "has_permission": "erpnext.check_app_permission",
+    }
+]

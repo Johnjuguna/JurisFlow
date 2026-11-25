@@ -1,4 +1,5 @@
 import frappe
+from jurisflow.tests.integration.helpers import make_cleared_check
 from frappe.utils import add_days, today
 
 
@@ -22,6 +23,7 @@ def run():
 
     m = frappe.get_doc({
         "doctype": "Legal Matter", "title": "TEST Client v Test Opponent", "customer": customer,
+        "conflict_check": make_cleared_check(),
         "court": "Milimani Law Courts", "case_no": "HCCC E001 of 2026",
         "responsible_advocate": "Administrator", "status": "Open",
     }).insert()

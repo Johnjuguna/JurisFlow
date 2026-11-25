@@ -1,0 +1,107 @@
+{
+ "doctype": "DocType",
+ "name": "JF Deadline Settings",
+ "module": "JF Deadlines",
+ "custom": 0,
+ "engine": "InnoDB",
+ "creation": "2026-11-19 09:11:10.142962",
+ "modified": "2026-11-25 10:50:43.670111",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "istable": 0,
+ "issingle": 1,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "holiday_list",
+  "vacations",
+  "section_policy",
+  "escalate_within_days",
+  "max_count_steps",
+  "verifier_roles"
+ ],
+ "fields": [
+  {
+   "fieldname": "holiday_list",
+   "fieldtype": "Link",
+   "label": "Court Holiday List",
+   "options": "Holiday List",
+   "description": "Public holidays and other non-sitting days. Required for 'Court days' rules."
+  },
+  {
+   "fieldname": "vacations",
+   "fieldtype": "Table",
+   "label": "Court Vacation Periods",
+   "options": "Court Vacation Period"
+  },
+  {
+   "fieldname": "section_policy",
+   "fieldtype": "Section Break",
+   "label": "Policy"
+  },
+  {
+   "fieldname": "escalate_within_days",
+   "fieldtype": "Int",
+   "label": "Escalate unassigned deadlines due within (days)",
+   "default": 14,
+   "reqd": 1
+  },
+  {
+   "fieldname": "verifier_roles",
+   "fieldtype": "Table",
+   "label": "Roles allowed to verify rules",
+   "options": "Deadline Verifier Role",
+   "description": "Only users with one of these roles can verify a Deadline Rule."
+  },
+  {
+   "fieldname": "max_count_steps",
+   "fieldtype": "Int",
+   "label": "Max Counting Steps",
+   "default": "20000",
+   "non_negative": 1,
+   "description": "Safety limit for day counting. Leave at the default unless advised."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "delete": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1
+  },
+  {
+   "role": "Law Firm Partner",
+   "permlevel": 0,
+   "delete": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1
+  },
+  {
+   "role": "Advocate",
+   "permlevel": 0,
+   "delete": 0,
+   "read": 1,
+   "print": 1,
+   "report": 1
+  },
+  {
+   "role": "Law Clerk",
+   "permlevel": 0,
+   "delete": 0,
+   "read": 1,
+   "print": 1,
+   "report": 1
+  }
+ ]
+}
