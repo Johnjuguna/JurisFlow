@@ -3,7 +3,7 @@ frappe.ui.form.on("Legal Matter", {
     if (frm.is_new()) return;
     frm.add_custom_button(__("Create Invoice"), () => {
       frappe.call({
-        method: "jurisflow.jurisflow.doctype.legal_matter.legal_matter.create_invoice",
+        method: "jurisflow.services.billing_service.create_invoice_for_matter",
         args: { matter: frm.doc.name },
         freeze: true,
         callback: (r) => r.message && frappe.set_route("Form", "Sales Invoice", r.message),

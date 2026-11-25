@@ -284,6 +284,12 @@ from jurisflow.deadline_hooks import merge_doc_events, merge_scheduler
 scheduler_events = merge_scheduler(scheduler_events)
 doc_events = merge_doc_events(doc_events)
 
+# --- JF Billing: free time entries when an invoice is cancelled or deleted ---
+doc_events.setdefault("Sales Invoice", {}).update({
+    "before_cancel": "jurisflow.services.billing_service.release_entries",
+    "on_trash": "jurisflow.services.billing_service.release_entries",
+})
+
 add_to_apps_screen = [
     {
         "name": "jurisflow",

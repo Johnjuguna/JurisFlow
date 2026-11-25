@@ -22,6 +22,5 @@ class LegalTimeEntry(Document):
         self.refresh_matter()
 
     def refresh_matter(self):
-        doc = frappe.get_doc("Legal Matter", self.matter)
-        doc.set_unbilled_amount()
-        doc.db_set("unbilled_amount", doc.unbilled_amount)
+        from jurisflow.services.billing_service import refresh_unbilled
+        refresh_unbilled(self.matter)
