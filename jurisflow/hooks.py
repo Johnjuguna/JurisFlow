@@ -317,3 +317,5 @@ doc_events.setdefault("Fee Note", {}).update(
 		],
 	}
 )
+
+after_migrate = ["jurisflow.print_formats.sync.sync"]
