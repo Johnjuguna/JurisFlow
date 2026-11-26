@@ -125,5 +125,6 @@ def run_invoice():
 	say("net total matches", inv.net_total == fn.total_fees + fn.total_disbursements, inv.net_total)
 	say("VAT matches fee note", inv.total_taxes_and_charges == fn.vat_amount, inv.total_taxes_and_charges)
 	say("grand total matches", inv.grand_total == fn.grand_total, inv.grand_total)
+	say("invoice linked to matter", inv.matter == m.name, inv.matter)
 	fn.cancel()
 	say("draft invoice removed on cancel", not frappe.db.exists("Sales Invoice", inv.name))
