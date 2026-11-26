@@ -67,6 +67,7 @@ def create_invoice_for_matter(matter):
 				"description": f"{r.entry_date} | {r.advocate} | {r.narration}",
 			},
 		)
+	inv.matter = m.name
 	inv.remarks = f"Legal matter {m.name}: {m.title}"
 	inv.insert()
 	for r in rows:

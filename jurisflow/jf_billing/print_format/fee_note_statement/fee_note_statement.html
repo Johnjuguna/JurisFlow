@@ -1,0 +1,163 @@
+{%- set company = frappe.db.get_value("Company", doc.company, ["company_name", "tax_id", "default_bank_account", "company_logo", "default_currency"], as_dict=True) -%}
+{%- set cur = company.default_currency -%}
+{%- set bank = frappe.db.get_value("Bank Account", company.default_bank_account, ["account_name", "bank", "bank_account_no", "branch_code"], as_dict=True) if company.default_bank_account else None -%}
+{%- set cust = frappe.db.get_value("Customer", doc.customer, ["customer_name", "tax_id", "customer_primary_address"], as_dict=True) -%}
+{%- set addr = frappe.db.get_value("Address", cust.customer_primary_address, ["address_line1", "city", "country"], as_dict=True) if cust and cust.customer_primary_address else None -%}
+{%- set matter = frappe.db.get_value("Legal Matter", doc.matter, ["title", "court", "responsible_advocate"], as_dict=True) -%}
+{%- set fees = doc.lines | selectattr("line_type", "equalto", "Fee") | list -%}
+{%- set disb = doc.lines | selectattr("line_type", "equalto", "Disbursement") | list -%}
+<style>
+	.jf { --jf-accent: #14456e; --jf-muted: #5b6770; font-size: 11px; color: #1c2329; }
+	.jf h1 { font-size: 22px; letter-spacing: 3px; margin: 0; }
+	.jf .tag { display: inline-block; background: var(--jf-accent); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 8px; margin-bottom: 4px; }
+	.jf .muted { color: var(--jf-muted); }
+	.jf .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+	.jf .box { border: 1px solid #d5dbe0; }
+	.jf .box div { display: flex; justify-content: space-between; gap: 24px; padding: 4px 10px; border-bottom: 1px solid #e6eaee; min-width: 260px; }
+	.jf .box div:last-child { border-bottom: 0; }
+	.jf table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+	.jf th { background: var(--jf-accent); color: #fff; text-align: left; font-size: 9px; letter-spacing: 1px; padding: 6px 8px; }
+	.jf td { padding: 8px; border-bottom: 1px solid #e6eaee; vertical-align: top; }
+	.jf .num { text-align: right; white-space: nowrap; }
+	.jf .totals { width: 300px; margin-left: auto; }
+	.jf .totals td { padding: 5px 8px; }
+	.jf .grand td { font-weight: 700; font-size: 13px; border-top: 2px solid var(--jf-accent); }
+</style>
+<div class="jf">
+	{%- if not letter_head %}
+	<div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--jf-accent); padding-bottom: 10px; margin-bottom: 18px;">
+		<div style="width: 90px;">{% if company.company_logo %}<img src="{{ company.company_logo }}" style="max-height: 72px; max-width: 90px;">{% endif %}</div>
+		<div style="text-align: center; flex: 1;">
+			<div style="font-size: 20px; font-weight: 700; color: var(--jf-accent); text-transform: uppercase;">{{ company.company_name }}</div>
+			{%- if company.tax_id %}<div class="muted">{{ _("PIN") }}: {{ company.tax_id }}</div>{% endif %}
+		</div>
+		<div style="width: 90px;"></div>
+	</div>
+	{%- endif %}
+
+	<div class="row">
+		<h1>{{ _("FEE NOTE") }}</h1>
+		<div style="text-align: right;">
+			<div class="muted" style="font-size: 9px; letter-spacing: 1px;">{{ _("FEE NOTE NO.") }}</div>
+			<div style="font-size: 15px; font-weight: 700; color: var(--jf-accent);">{{ doc.name }}</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div>
+			<span class="tag">{{ _("TO") }}</span>
+			<div style="font-size: 14px; font-weight: 700;">{{ cust.customer_name }}</div>
+			{%- if cust.tax_id %}<div class="muted">{{ _("PIN") }}: <b style="color:#1c2329">{{ cust.tax_id }}</b></div>{% endif %}
+			{%- if addr %}<div class="muted">{{ addr.address_line1 or "" }}{% if addr.city %}, {{ addr.city }}{% endif %}{% if addr.country %}, {{ addr.country }}{% endif %}</div>{% endif %}
+		</div>
+		<div class="box">
+			<div><span class="muted">{{ _("DATE") }}</span><b>{{ doc.get_formatted("posting_date") }}</b></div>
+			<div><span class="muted">{{ _("CURRENCY") }}</span><b>{{ cur }}</b></div>
+			{%- if doc.sales_invoice %}<div><span class="muted">{{ _("INVOICE") }}</span><b>{{ doc.sales_invoice }}</b></div>{% endif %}
+		</div>
+	</div>
+
+	<div style="margin-bottom: 18px;">
+		<span class="tag">{{ _("MATTER") }}</span>
+		<div style="font-weight: 700;">{{ matter.title }}</div>
+		<div class="muted">{{ doc.matter }}{% if matter.court %} &middot; {{ matter.court }}{% endif %}{% if matter.responsible_advocate %} &middot; {{ _("Advocate") }}: {{ frappe.db.get_value("User", matter.responsible_advocate, "full_name") or matter.responsible_advocate }}{% endif %}</div>
+	</div>
+
+	{%- if fees %}
+	<table>
+		<thead><tr>
+			<th style="width: 5%;">#</th><th>{{ _("PROFESSIONAL FEES") }}</th>
+			<th class="num" style="width: 9%;">{{ _("QTY") }}</th>
+			<th class="num" style="width: 15%;">{{ _("RATE") }}</th>
+			<th class="num" style="width: 17%;">{{ _("AMOUNT") }} ({{ cur }})</th>
+		</tr></thead>
+		<tbody>
+			{%- for r in fees %}
+			<tr><td>{{ loop.index }}</td><td>{{ r.description }}</td>
+				<td class="num">{{ r.get_formatted("qty") }}</td>
+				<td class="num">{{ r.get_formatted("rate") }}</td>
+				<td class="num">{{ r.get_formatted("amount") }}</td></tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+	{%- endif %}
+
+	{%- if disb %}
+	<table>
+		<thead><tr>
+			<th style="width: 5%;">#</th><th>{{ _("DISBURSEMENTS") }}</th>
+			<th class="num" style="width: 9%;">{{ _("QTY") }}</th>
+			<th class="num" style="width: 15%;">{{ _("RATE") }}</th>
+			<th class="num" style="width: 17%;">{{ _("AMOUNT") }} ({{ cur }})</th>
+		</tr></thead>
+		<tbody>
+			{%- for r in disb %}
+			<tr><td>{{ loop.index }}</td><td>{{ r.description }}</td>
+				<td class="num">{{ r.get_formatted("qty") }}</td>
+				<td class="num">{{ r.get_formatted("rate") }}</td>
+				<td class="num">{{ r.get_formatted("amount") }}</td></tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+	{%- endif %}
+
+	<table class="totals">
+		<tr><td>{{ _("Professional fees") }}</td><td class="num">{{ frappe.utils.fmt_money(doc.total_fees, currency=cur) }}</td></tr>
+		<tr><td>{{ _("Disbursements") }}</td><td class="num">{{ frappe.utils.fmt_money(doc.total_disbursements, currency=cur) }}</td></tr>
+		<tr><td>{{ _("VAT") }}{% if doc.vat_rate %} @ {{ doc.vat_rate }}%{% endif %}</td><td class="num">{{ frappe.utils.fmt_money(doc.vat_amount, currency=cur) }}</td></tr>
+		<tr class="grand"><td>{{ _("Total") }} ({{ cur }})</td><td class="num">{{ frappe.utils.fmt_money(doc.grand_total, currency=cur) }}</td></tr>
+	</table>
+
+	<div style="margin-bottom: 14px;">
+		<span class="tag">{{ _("AMOUNT IN WORDS") }}</span>
+		<div style="font-weight: 700;">{{ frappe.utils.money_in_words(doc.grand_total, cur) }}</div>
+	</div>
+
+	{%- if bank %}
+	<div style="margin-bottom: 14px;">
+		<span class="tag">{{ _("PAYMENT DETAILS") }}</span>
+		<div>{{ bank.account_name }} &middot; {{ bank.bank }}{% if bank.branch_code %} ({{ bank.branch_code }}){% endif %}</div>
+		<div class="muted">{{ _("Account No.") }} {{ bank.bank_account_no }}</div>
+	</div>
+	{%- endif %}
+</div>
+
+	{%- if disb %}
+	<table>
+		<thead><tr>
+			<th style="width: 5%;">#</th><th>{{ _("DISBURSEMENTS") }}</th>
+			<th class="num" style="width: 9%;">{{ _("QTY") }}</th>
+			<th class="num" style="width: 15%;">{{ _("RATE") }}</th>
+			<th class="num" style="width: 17%;">{{ _("AMOUNT") }} ({{ cur }})</th>
+		</tr></thead>
+		<tbody>
+			{%- for r in disb %}
+			<tr><td>{{ loop.index }}</td><td>{{ r.description }}</td>
+				<td class="num">{{ r.get_formatted("qty") }}</td>
+				<td class="num">{{ r.get_formatted("rate") }}</td>
+				<td class="num">{{ r.get_formatted("amount") }}</td></tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+	{%- endif %}
+
+	<table class="totals">
+		<tr><td>{{ _("Professional fees") }}</td><td class="num">{{ frappe.utils.fmt_money(doc.total_fees, currency=cur) }}</td></tr>
+		<tr><td>{{ _("Disbursements") }}</td><td class="num">{{ frappe.utils.fmt_money(doc.total_disbursements, currency=cur) }}</td></tr>
+		<tr><td>{{ _("VAT") }}{% if doc.vat_rate %} @ {{ doc.vat_rate }}%{% endif %}</td><td class="num">{{ frappe.utils.fmt_money(doc.vat_amount, currency=cur) }}</td></tr>
+		<tr class="grand"><td>{{ _("Total") }} ({{ cur }})</td><td class="num">{{ frappe.utils.fmt_money(doc.grand_total, currency=cur) }}</td></tr>
+	</table>
+
+	<div style="margin-bottom: 14px;">
+		<span class="tag">{{ _("AMOUNT IN WORDS") }}</span>
+		<div style="font-weight: 700;">{{ frappe.utils.money_in_words(doc.grand_total, cur) }}</div>
+	</div>
+
+	{%- if bank %}
+	<div style="margin-bottom: 14px;">
+		<span class="tag">{{ _("PAYMENT DETAILS") }}</span>
+		<div>{{ bank.account_name }} &middot; {{ bank.bank }}{% if bank.branch_code %} ({{ bank.branch_code }}){% endif %}</div>
+		<div class="muted">{{ _("Account No.") }} {{ bank.bank_account_no }}</div>
+	</div>
+	{%- endif %}
+</div>

@@ -259,6 +259,7 @@ app_license = "Proprietary"
 required_apps = ["frappe", "erpnext"]
 
 after_install = "jurisflow.setup.install.after_install"
+after_migrate = "jurisflow.setup.custom_fields.ensure_custom_fields"
 
 scheduler_events = {
 	"daily": ["jurisflow.jobs.reminder_jobs.send_hearing_reminders"],
@@ -316,3 +317,4 @@ doc_events.setdefault("Fee Note", {}).update(
 		],
 	}
 )
+

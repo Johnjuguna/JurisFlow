@@ -48,6 +48,7 @@ def run():
 	inv = bs.create_invoice_for_matter(m.name)
 	say("invoice created", bool(inv), inv)
 	say("invoice net total = 19000", frappe.db.get_value("Sales Invoice", inv, "net_total") == 19000)
+	say("invoice linked to matter", frappe.db.get_value("Sales Invoice", inv, "matter") == m.name)
 	say(
 		"entries marked billed",
 		frappe.db.count("Legal Time Entry", {"matter": m.name, "billed": 1, "invoice": inv}) == 2,
