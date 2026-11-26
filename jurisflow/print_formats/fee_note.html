@@ -6,7 +6,7 @@
 {%- set INK          = "#1b2430" -%}
 {%- set MUTED        = "#3d4853" -%}
 {%- set LINE         = "#d9e1e9" -%}
-{%- set MATTER_DETAIL_FIELDS = ["court", "advocate"] -%}
+{%- set MATTER_DETAIL_FIELDS = ["court", "case_no", "responsible_advocate"] -%}
 {%- set MATTER_LINK_HINT = "matter" -%}
 {#- ================================================================================ -#}
 
@@ -170,7 +170,9 @@
         {%- set val = ns.matter.get(fn) -%}
         {%- if mdf and val -%}
           {%- if mdf.fieldtype == "Link" -%}
-            {%- set val = frappe.db.get_value(mdf.options, val, (frappe.get_meta(mdf.options).title_field or "name")) or val -%}
+            {%- set lm = frappe.get_meta(mdf.options) -%}
+            {%- set tf = lm.title_field or ("full_name" if lm.has_field("full_name") else "name") -%}
+            {%- set val = frappe.db.get_value(mdf.options, val, tf) or val -%}
           {%- endif -%}
           {%- set _ = parts.append(mdf.label ~ ": " ~ val) -%}
         {%- endif -%}
