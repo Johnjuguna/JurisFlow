@@ -18,7 +18,7 @@
 {%- set apps_screen = frappe.get_hooks("add_to_apps_screen", app_name=APP_NAME) -%}
 {%- set app_logo = (app_logo_hook[-1] if app_logo_hook else "") or ((apps_screen[0].get("logo") or "") if apps_screen else "") -%}
 {%- set logo = (app_logo or co.company_logo) if LOGO_SOURCE == "app" else (co.company_logo or app_logo) -%}
-{%- set tagline = ((frappe.db.get_value("Company", doc.company, "company_description") or "")|striptags|trim) if frappe.get_meta("Company").has_field("company_description") else "" -%}
+{%- set tagline = ((frappe.db.get_value("Company", doc.company, "company_description") or "")|striptags|trim) if (frappe.get_meta("Company").fields|selectattr("fieldname", "equalto", "company_description")|list) else "" -%}
 {%- set ca = namespace(text="") -%}
 {%- if doc.company_address_display -%}
   {%- set ca.text = doc.company_address_display|replace("<br>", ", ")|striptags|replace("\n", " ")|trim(" ,") -%}
@@ -195,12 +195,12 @@
     <div class="jf-matter-sub">
       {%- set parts = [ns.matter.name] -%}
       {%- for fn in MATTER_DETAIL_FIELDS -%}
-        {%- set mdf = ns.meta.get_field(fn) -%}
+        {%- set mdf = (ns.meta.fields|selectattr("fieldname", "equalto", fn)|first) -%}
         {%- set val = ns.matter.get(fn) -%}
         {%- if mdf and val -%}
           {%- if mdf.fieldtype == "Link" -%}
             {%- set lm = frappe.get_meta(mdf.options) -%}
-            {%- set tf = lm.title_field or ("full_name" if lm.has_field("full_name") else "name") -%}
+            {%- set tf = lm.title_field or ("full_name" if (lm.fields|selectattr("fieldname", "equalto", "full_name")|list) else "name") -%}
             {%- set val = frappe.db.get_value(mdf.options, val, tf) or val -%}
           {%- endif -%}
           {%- set _unused = parts.append(mdf.label ~ ": " ~ val) -%}
