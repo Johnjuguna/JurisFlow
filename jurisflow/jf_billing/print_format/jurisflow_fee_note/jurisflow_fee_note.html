@@ -34,6 +34,14 @@
 {%- endif -%}
 {%- set cust_pin = doc.tax_id or (frappe.db.get_value("Customer", doc.customer, "tax_id") if doc.customer else "") -%}
 
+{#- count lines whose item tax template carries only zero rates (exempt lines) -#}
+{%- set ex = namespace(n=0) -%}
+{%- for it in doc.items -%}
+  {%- if it.item_tax_template -%}
+    {%- set rates = frappe.get_all("Item Tax Template Detail", filters={"parent": it.item_tax_template}, pluck="tax_rate", parent_doctype="Item Tax Template") -%}
+    {%- if rates and (rates|select|list|length) == 0 -%}{%- set ex.n = ex.n + 1 -%}{%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
 {%- set ns = namespace(df=None, matter=None, meta=None) -%}
 {%- for df in frappe.get_meta(doc.doctype).fields -%}
   {%- if not ns.df and df.fieldtype == "Link" and MATTER_LINK_HINT in df.fieldname and doc.get(df.fieldname) -%}
@@ -94,7 +102,7 @@
 .jf-items tbody tr:nth-child(even) td{background:#fafcfd;}
 .jf-items tbody tr:last-child td{border-bottom:none;}
 .jf-items .c-no{width:26px;text-align:center;color:#46525e;}
-.jf-items .c-qty{width:48px;text-align:center;}
+.jf-items .c-qty{width:70px;text-align:center;}
 .jf-items .c-rate{width:96px;text-align:right;}
 .jf-items .c-amt{width:120px;text-align:right;font-weight:700;}
 .jf-items th.c-no{text-align:center;}
@@ -222,7 +230,7 @@
           {% set d = (it.description or "")|striptags|trim %}
           {% if d and d != (it.item_name or "")|trim %}<div class="jf-it-desc">{{ it.description }}</div>{% endif %}
         </td>
-        <td class="c-qty">{{ "{:g}".format(it.qty or 0) }}</td>
+        <td class="c-qty">{{ "{:g}".format(it.qty or 0) }}{% if it.uom %} {{ it.uom }}{% endif %}</td>
         <td class="c-rate">{{ money(it.rate) }}</td>
         <td class="c-amt">{{ money(it.amount) }}</td>
       </tr>
@@ -238,8 +246,8 @@
         {% if doc.taxes %}
         <div class="jf-note">
           {{ _("Tax charged at") }}
-          {%- for t in doc.taxes %} {{ "{:g}".format(t.rate or 0) }}%{% if not loop.last %},{% endif %}{% endfor %}
-          {{ _("on the taxable value shown.") }}
+          {%- for t in doc.taxes if t.rate %} {{ "{:g}".format(t.rate) }}%{% if not loop.last %},{% endif %}{% endfor %}
+          {% if ex.n %}{{ _("on taxable items; exempt items carry no tax.") }}{% else %}{{ _("on the taxable value shown.") }}{% endif %}
         </div>
         {% endif %}
       </td>

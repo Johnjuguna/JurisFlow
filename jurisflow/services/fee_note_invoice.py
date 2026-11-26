@@ -92,6 +92,7 @@ def create_invoice_on_submit(doc, method=None):
 		if not r.vat_applicable:
 			row["item_tax_template"] = no_vat
 		inv.append("items", row)
+	inv.matter = doc.matter
 	inv.remarks = f"Fee Note {doc.name} - matter {doc.matter}"
 	inv.insert()
 	doc.db_set("sales_invoice", inv.name)
