@@ -6,13 +6,32 @@
 {%- set INK          = "#1b2430" -%}
 {%- set MUTED        = "#3d4853" -%}
 {%- set LINE         = "#d9e1e9" -%}
+{#- App whose logo is used, and which logo wins: "app" or "company" -#}
+{%- set APP_NAME     = "jurisflow" -%}
+{%- set LOGO_SOURCE  = "app" -%}
 {%- set MATTER_DETAIL_FIELDS = ["court", "case_no", "responsible_advocate"] -%}
 {%- set MATTER_LINK_HINT = "matter" -%}
 {#- ================================================================================ -#}
 
 {%- set co = frappe.db.get_value("Company", doc.company, ["company_name", "company_logo", "tax_id", "phone_no", "email", "website"], as_dict=True) or {} -%}
-{%- set app_logos = frappe.get_hooks("app_logo_url") -%}
-{%- set logo = co.company_logo or (app_logos[-1] if app_logos else "") -%}
+{%- set app_logo_hook = frappe.get_hooks("app_logo_url", app_name=APP_NAME) -%}
+{%- set apps_screen = frappe.get_hooks("add_to_apps_screen", app_name=APP_NAME) -%}
+{%- set app_logo = (app_logo_hook[-1] if app_logo_hook else "") or ((apps_screen[0].get("logo") or "") if apps_screen else "") -%}
+{%- set logo = (app_logo or co.company_logo) if LOGO_SOURCE == "app" else (co.company_logo or app_logo) -%}
+{%- set tagline = ((frappe.db.get_value("Company", doc.company, "company_description") or "")|striptags|trim) if frappe.get_meta("Company").has_field("company_description") else "" -%}
+{%- set ca = namespace(text="") -%}
+{%- if doc.company_address_display -%}
+  {%- set ca.text = doc.company_address_display|replace("<br>", ", ")|striptags|replace("\n", " ")|trim(" ,") -%}
+{%- else -%}
+  {%- for link in frappe.get_all("Dynamic Link", filters={"link_doctype": "Company", "link_name": doc.company, "parenttype": "Address"}, parent_doctype="Address", pluck="parent") -%}
+    {%- if not ca.text -%}
+      {%- set a = frappe.db.get_value("Address", link, ["address_line1", "address_line2", "city", "country", "is_your_company_address"], as_dict=True) -%}
+      {%- if a and a.is_your_company_address -%}
+        {%- set ca.text = [a.address_line1, a.address_line2, a.city, a.country]|select|join(", ") -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
 {%- set cust_pin = doc.tax_id or (frappe.db.get_value("Customer", doc.customer, "tax_id") if doc.customer else "") -%}
 
 {%- set ns = namespace(df=None, matter=None, meta=None) -%}
@@ -32,17 +51,18 @@
 .jf-sheet td,.jf-sheet th{vertical-align:top;}
 .jf-head td{vertical-align:middle;}
 .jf-head-side{width:100px;}
-.jf-logo{max-width:100px;max-height:70px;height:auto;display:block;}
+.jf-logo{max-width:90px;max-height:80px;height:auto;display:block;}
 .jf-head-txt{padding:0 8px;text-align:center;}
 .jf-co{font-size:16.5pt;font-weight:800;letter-spacing:.4px;color:{{ ACCENT }};line-height:1.1;text-transform:uppercase;}
 .jf-meta{font-size:7.8pt;color:{{ MUTED }};margin-top:3px;}
 .jf-sep{color:#c3ccd6;}
+.jf-tag{font-size:6.9pt;font-weight:600;letter-spacing:.45px;text-transform:uppercase;color:{{ ACCENT_2 }};margin-top:2px;}
 .jf-rule{margin:7px 0 0;height:3px;background:{{ ACCENT }};position:relative;}
 .jf-rule span{position:absolute;left:0;top:0;height:3px;width:110px;background:{{ ACCENT_2 }};}
 .jf-title{margin-top:14px;}
 .jf-title td{vertical-align:bottom;}
 .jf-doct{font-size:19pt;font-weight:800;letter-spacing:3.5px;color:#000;line-height:1;}
-.jf-title-r{text-align:right;width:190px;}
+.jf-title-r{text-align:right;width:250px;white-space:nowrap;}
 .jf-invno-lbl{font-size:6.8pt;letter-spacing:1.4px;text-transform:uppercase;color:#46525e;font-weight:700;}
 .jf-invno{font-size:13pt;font-weight:800;color:{{ ACCENT }};letter-spacing:.5px;margin-top:1px;}
 .jf-cap{font-size:6.8pt;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#fff;background:{{ ACCENT }};display:inline-block;padding:2.5px 8px;border-radius:2px;margin-bottom:6px;white-space:nowrap;}
@@ -107,8 +127,9 @@
       <td class="jf-head-side">{% if logo %}<img src="{{ logo }}" class="jf-logo"/>{% endif %}</td>
       <td class="jf-head-txt">
         <div class="jf-co">{{ co.company_name or doc.company }}</div>
+        {% if tagline %}<div class="jf-tag">{{ tagline }}</div>{% endif %}
         <div class="jf-meta">
-          {%- if doc.company_address_display %}{{ doc.company_address_display|striptags|replace("\n", ", ") }}{% endif %}
+          {{ ca.text }}
         </div>
         <div class="jf-meta">
           {%- set bits = [] -%}
@@ -119,7 +140,7 @@
           {{ bits|join(' <span class="jf-sep">|</span> ') }}
         </div>
       </td>
-      <td class="jf-head-side"></td>
+      <td class="jf-head-side" style="text-align:right">{% if logo %}<img src="{{ logo }}" class="jf-logo" style="display:inline-block"/>{% endif %}</td>
     </tr>
   </table>
   <div class="jf-rule"><span></span></div>
