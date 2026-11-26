@@ -133,10 +133,10 @@
         </div>
         <div class="jf-meta">
           {%- set bits = [] -%}
-          {%- if doc.company_tax_id or co.tax_id %}{% set _ = bits.append("PIN: " ~ (doc.company_tax_id or co.tax_id)) %}{% endif -%}
-          {%- if co.phone_no %}{% set _ = bits.append("Tel: " ~ co.phone_no) %}{% endif -%}
-          {%- if co.email %}{% set _ = bits.append(co.email) %}{% endif -%}
-          {%- if co.website %}{% set _ = bits.append(co.website) %}{% endif -%}
+          {%- if doc.company_tax_id or co.tax_id %}{% set _unused = bits.append("PIN: " ~ (doc.company_tax_id or co.tax_id)) %}{% endif -%}
+          {%- if co.phone_no %}{% set _unused = bits.append("Tel: " ~ co.phone_no) %}{% endif -%}
+          {%- if co.email %}{% set _unused = bits.append(co.email) %}{% endif -%}
+          {%- if co.website %}{% set _unused = bits.append(co.website) %}{% endif -%}
           {{ bits|join(' <span class="jf-sep">|</span> ') }}
         </div>
       </td>
@@ -195,7 +195,7 @@
             {%- set tf = lm.title_field or ("full_name" if lm.has_field("full_name") else "name") -%}
             {%- set val = frappe.db.get_value(mdf.options, val, tf) or val -%}
           {%- endif -%}
-          {%- set _ = parts.append(mdf.label ~ ": " ~ val) -%}
+          {%- set _unused = parts.append(mdf.label ~ ": " ~ val) -%}
         {%- endif -%}
       {%- endfor -%}
       {{ parts|join(" &middot; ") }}
