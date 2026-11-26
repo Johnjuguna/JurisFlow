@@ -1,120 +1,248 @@
-{%- set company = frappe.db.get_value("Company", doc.company, ["company_name", "tax_id", "default_bank_account"], as_dict=True) -%}
-{%- set bank = frappe.db.get_value("Bank Account", company.default_bank_account, ["account_name", "bank", "bank_account_no", "branch_code"], as_dict=True) if company and company.default_bank_account else None -%}
-{%- set matter = frappe.db.get_value("Legal Matter", doc.get("matter"), ["title", "court", "responsible_advocate"], as_dict=True) if doc.get("matter") else None -%}
-{%- set is_tax = doc.taxes | length > 0 -%}
+<meta name="pdfkit-orientation" content="Portrait"/>
+
+{#- ============ SINGLE PLACE FOR TUNABLES (no company data lives here) ============ -#}
+{%- set ACCENT       = "#0F5E8C" -%}
+{%- set ACCENT_2     = "#FD0000" -%}
+{%- set INK          = "#1b2430" -%}
+{%- set MUTED        = "#3d4853" -%}
+{%- set LINE         = "#d9e1e9" -%}
+{%- set MATTER_DETAIL_FIELDS = ["court", "case_no", "responsible_advocate"] -%}
+{%- set MATTER_LINK_HINT = "matter" -%}
+{#- ================================================================================ -#}
+
+{%- set co = frappe.db.get_value("Company", doc.company, ["company_name", "company_logo", "tax_id", "phone_no", "email", "website"], as_dict=True) or {} -%}
+{%- set app_logos = frappe.get_hooks("app_logo_url") -%}
+{%- set logo = co.company_logo or (app_logos[-1] if app_logos else "") -%}
+{%- set cust_pin = doc.tax_id or (frappe.db.get_value("Customer", doc.customer, "tax_id") if doc.customer else "") -%}
+
+{%- set ns = namespace(df=None, matter=None, meta=None) -%}
+{%- for df in frappe.get_meta(doc.doctype).fields -%}
+  {%- if not ns.df and df.fieldtype == "Link" and MATTER_LINK_HINT in df.fieldname and doc.get(df.fieldname) -%}
+    {%- set ns.df = df -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if ns.df -%}
+  {%- set ns.matter = frappe.get_doc(ns.df.options, doc.get(ns.df.fieldname)) -%}
+  {%- set ns.meta = frappe.get_meta(ns.df.options) -%}
+{%- endif -%}
+
 <style>
-	.jf { --jf-accent: #14456e; --jf-muted: #5b6770; font-size: 11px; color: #1c2329; }
-	.jf h1 { font-size: 22px; letter-spacing: 3px; margin: 0; color: #1c2329; }
-	.jf .tag { display: inline-block; background: var(--jf-accent); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 8px; margin-bottom: 4px; }
-	.jf .muted { color: var(--jf-muted); }
-	.jf .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
-	.jf .box { border: 1px solid #d5dbe0; }
-	.jf .box div { display: flex; justify-content: space-between; padding: 4px 10px; border-bottom: 1px solid #e6eaee; min-width: 260px; }
-	.jf .box div:last-child { border-bottom: 0; }
-	.jf table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
-	.jf th { background: var(--jf-accent); color: #fff; text-align: left; font-size: 9px; letter-spacing: 1px; padding: 6px 8px; }
-	.jf td { padding: 8px; border-bottom: 1px solid #e6eaee; vertical-align: top; }
-	.jf .num { text-align: right; white-space: nowrap; }
-	.jf .totals { width: 280px; margin-left: auto; }
-	.jf .totals td { padding: 5px 8px; border-bottom: 1px solid #e6eaee; }
-	.jf .grand td { font-weight: 700; font-size: 13px; border-top: 2px solid var(--jf-accent); }
-	.jf .note { font-size: 10px; color: var(--jf-muted); margin-top: 14px; }
+.jf-sheet{position:relative;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:{{ INK }};font-size:9.2pt;line-height:1.38;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.jf-sheet table{width:100%;border-collapse:collapse;}
+.jf-sheet td,.jf-sheet th{vertical-align:top;}
+.jf-head td{vertical-align:middle;}
+.jf-head-side{width:100px;}
+.jf-logo{max-width:100px;max-height:70px;height:auto;display:block;}
+.jf-head-txt{padding:0 8px;text-align:center;}
+.jf-co{font-size:16.5pt;font-weight:800;letter-spacing:.4px;color:{{ ACCENT }};line-height:1.1;text-transform:uppercase;}
+.jf-meta{font-size:7.8pt;color:{{ MUTED }};margin-top:3px;}
+.jf-sep{color:#c3ccd6;}
+.jf-rule{margin:7px 0 0;height:3px;background:{{ ACCENT }};position:relative;}
+.jf-rule span{position:absolute;left:0;top:0;height:3px;width:110px;background:{{ ACCENT_2 }};}
+.jf-title{margin-top:14px;}
+.jf-title td{vertical-align:bottom;}
+.jf-doct{font-size:19pt;font-weight:800;letter-spacing:3.5px;color:#000;line-height:1;}
+.jf-title-r{text-align:right;width:190px;}
+.jf-invno-lbl{font-size:6.8pt;letter-spacing:1.4px;text-transform:uppercase;color:#46525e;font-weight:700;}
+.jf-invno{font-size:13pt;font-weight:800;color:{{ ACCENT }};letter-spacing:.5px;margin-top:1px;}
+.jf-cap{font-size:6.8pt;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#fff;background:{{ ACCENT }};display:inline-block;padding:2.5px 8px;border-radius:2px;margin-bottom:6px;white-space:nowrap;}
+.jf-cols{margin-top:14px;}
+.jf-col-bill{width:54%;}
+.jf-col-gap{width:3%;}
+.jf-col-facts{width:43%;}
+.jf-cust{font-size:11.5pt;font-weight:800;line-height:1.2;}
+.jf-addr{font-size:8.6pt;color:{{ MUTED }};margin-top:3px;}
+.jf-addr p{margin:0;}
+.jf-kv{margin-top:6px;}
+.jf-kv td{padding:1.5px 0;font-size:8.4pt;}
+.jf-kv td:first-child{width:74px;color:#46525e;font-weight:600;font-size:7.4pt;letter-spacing:.6px;text-transform:uppercase;}
+.jf-kv td:last-child{font-weight:600;}
+.jf-facts{border:1px solid {{ LINE }};border-radius:3px;}
+.jf-facts td{padding:4.2px 9px;font-size:8.5pt;border-bottom:1px solid #eef2f6;}
+.jf-facts tr:last-child td{border-bottom:none;}
+.jf-facts td:first-child{color:{{ MUTED }};font-weight:600;width:44%;background:#f7f9fb;font-size:7.6pt;letter-spacing:.5px;text-transform:uppercase;}
+.jf-facts td:last-child{font-weight:700;text-align:right;}
+.jf-matter{margin-top:14px;}
+.jf-matter-title{font-size:10pt;font-weight:700;}
+.jf-matter-sub{font-size:8pt;color:{{ MUTED }};margin-top:1px;}
+.jf-items{margin-top:15px;border:1px solid {{ LINE }};}
+.jf-items thead{display:table-header-group;}
+.jf-items th{background:{{ ACCENT }};color:#fff;font-size:7.4pt;font-weight:700;letter-spacing:.9px;text-transform:uppercase;padding:7px 8px;text-align:left;border-right:1px solid rgba(255,255,255,.18);}
+.jf-items th:last-child{border-right:none;}
+.jf-items td{padding:8px;font-size:8.8pt;border-bottom:1px solid #e7edf3;border-right:1px solid #eef2f6;}
+.jf-items td:last-child{border-right:none;}
+.jf-items tbody tr:nth-child(even) td{background:#fafcfd;}
+.jf-items tbody tr:last-child td{border-bottom:none;}
+.jf-items .c-no{width:26px;text-align:center;color:#46525e;}
+.jf-items .c-qty{width:48px;text-align:center;}
+.jf-items .c-rate{width:96px;text-align:right;}
+.jf-items .c-amt{width:120px;text-align:right;font-weight:700;}
+.jf-items th.c-no{text-align:center;}
+.jf-items th.c-qty{text-align:center;}
+.jf-items th.c-rate,.jf-items th.c-amt{text-align:right;}
+.jf-it-name{font-weight:700;}
+.jf-it-desc{font-size:8.2pt;color:{{ MUTED }};margin-top:2px;}
+.jf-it-desc p{margin:0 0 2px;}
+.jf-foot{margin-top:12px;page-break-inside:avoid;}
+.jf-words{width:54%;padding-right:16px;}
+.jf-words-v{font-size:9pt;font-weight:700;padding:2px 0;}
+.jf-note{font-size:7.4pt;color:#46525e;margin-top:6px;line-height:1.35;}
+.jf-tot-wrap{width:46%;}
+.jf-tot{border:1px solid {{ LINE }};}
+.jf-tot td{padding:5px 10px;font-size:8.8pt;border-bottom:1px solid #eef2f6;}
+.jf-tot td:first-child{color:{{ MUTED }};font-weight:600;}
+.jf-tot td:last-child{text-align:right;font-weight:700;width:110px;}
+.jf-tot-grand td{color:{{ INK }} !important;font-size:10.5pt;font-weight:800 !important;padding:8px 10px;border-top:1.5px solid {{ ACCENT }};border-bottom:none;}
+.jf-tot-due td{background:#fff5f5;color:{{ ACCENT_2 }} !important;font-weight:800 !important;border-bottom:none;}
+.jf-tail{margin-top:28px;padding-top:6px;border-top:1px solid #e7edf3;font-size:7pt;color:#5c6875;text-align:center;letter-spacing:.3px;}
+.jf-tail-strong{color:{{ ACCENT }};font-weight:700;}
 </style>
 
-<div class="jf">
-	{%- if not letter_head %}
-	<div style="border-bottom: 3px solid var(--jf-accent); padding-bottom: 8px; margin-bottom: 18px;">
-		<div style="font-size: 18px; font-weight: 700; color: var(--jf-accent);">{{ company.company_name }}</div>
-		<div class="muted">{{ doc.company_address_display or "" }}</div>
-		{%- if company.tax_id %}<div class="muted">{{ _("PIN") }}: {{ company.tax_id }}</div>{% endif %}
-	</div>
-	{%- endif %}
+{%- macro money(v) -%}{{ "{:,.2f}".format((v or 0)|abs) }}{%- endmacro -%}
 
-	<div class="row">
-		<h1>{{ _("TAX INVOICE") if is_tax else _("FEE NOTE") }}</h1>
-		<div style="text-align: right;">
-			<div class="muted" style="font-size: 9px; letter-spacing: 1px;">{{ _("INVOICE NO.") }}</div>
-			<div style="font-size: 15px; font-weight: 700; color: var(--jf-accent);">{{ doc.name }}</div>
-		</div>
-	</div>
+<div class="jf-sheet">
 
-	<div class="row">
-		<div>
-			<span class="tag">{{ _("INVOICE TO") }}</span>
-			<div style="font-size: 14px; font-weight: 700;">{{ doc.customer_name }}</div>
-			{%- if doc.tax_id %}<div class="muted">{{ _("PIN") }}: <b style="color:#1c2329">{{ doc.tax_id }}</b></div>{% endif %}
-			{%- if doc.address_display %}<div class="muted">{{ doc.address_display }}</div>{% endif %}
-		</div>
-		<div class="box">
-			<div><span class="muted">{{ _("INVOICE DATE") }}</span><b>{{ doc.get_formatted("posting_date") }}</b></div>
-			<div><span class="muted">{{ _("PAYMENT DUE") }}</span><b>{{ doc.get_formatted("due_date") }}</b></div>
-			<div><span class="muted">{{ _("CURRENCY") }}</span><b>{{ doc.currency }}</b></div>
-		</div>
-	</div>
+  <table class="jf-head">
+    <tr>
+      <td class="jf-head-side">{% if logo %}<img src="{{ logo }}" class="jf-logo"/>{% endif %}</td>
+      <td class="jf-head-txt">
+        <div class="jf-co">{{ co.company_name or doc.company }}</div>
+        <div class="jf-meta">
+          {%- if doc.company_address_display %}{{ doc.company_address_display|striptags|replace("\n", ", ") }}{% endif %}
+        </div>
+        <div class="jf-meta">
+          {%- set bits = [] -%}
+          {%- if doc.company_tax_id or co.tax_id %}{% set _ = bits.append("PIN: " ~ (doc.company_tax_id or co.tax_id)) %}{% endif -%}
+          {%- if co.phone_no %}{% set _ = bits.append("Tel: " ~ co.phone_no) %}{% endif -%}
+          {%- if co.email %}{% set _ = bits.append(co.email) %}{% endif -%}
+          {%- if co.website %}{% set _ = bits.append(co.website) %}{% endif -%}
+          {{ bits|join(' <span class="jf-sep">|</span> ') }}
+        </div>
+      </td>
+      <td class="jf-head-side"></td>
+    </tr>
+  </table>
+  <div class="jf-rule"><span></span></div>
 
-	{%- if matter %}
-	<div class="row" style="margin-top: -6px;">
-		<div>
-			<span class="tag">{{ _("MATTER") }}</span>
-			<div style="font-weight: 700;">{{ matter.title }}</div>
-			<div class="muted">
-				{{ doc.matter }}
-				{%- if matter.court %} &middot; {{ matter.court }}{% endif %}
-				{%- if matter.responsible_advocate %} &middot; {{ _("Advocate") }}: {{ frappe.db.get_value("User", matter.responsible_advocate, "full_name") or matter.responsible_advocate }}{% endif %}
-			</div>
-		</div>
-	</div>
-	{%- endif %}
+  <table class="jf-title">
+    <tr>
+      <td><div class="jf-doct">{{ _("CREDIT NOTE") if doc.is_return else _("FEE NOTE") }}</div></td>
+      <td class="jf-title-r">
+        <div class="jf-invno-lbl">{{ _("Invoice No.") }}</div>
+        <div class="jf-invno">{{ doc.name }}</div>
+      </td>
+    </tr>
+  </table>
 
-	<table>
-		<thead>
-			<tr>
-				<th style="width: 5%;">#</th>
-				<th>{{ _("DESCRIPTION") }}</th>
-				<th class="num" style="width: 9%;">{{ _("QTY") }}</th>
-				<th class="num" style="width: 15%;">{{ _("RATE") }}</th>
-				<th class="num" style="width: 17%;">{{ _("AMOUNT") }} ({{ doc.currency }})</th>
-			</tr>
-		</thead>
-		<tbody>
-			{%- for row in doc.items %}
-			<tr>
-				<td>{{ loop.index }}</td>
-				<td>
-					<b>{{ row.item_name }}</b>
-					{%- if row.description and row.description != row.item_name %}<div class="muted">{{ row.description }}</div>{% endif %}
-				</td>
-				<td class="num">{{ row.get_formatted("qty") }}</td>
-				<td class="num">{{ row.get_formatted("rate") }}</td>
-				<td class="num">{{ row.get_formatted("amount") }}</td>
-			</tr>
-			{%- endfor %}
-		</tbody>
-	</table>
+  <table class="jf-cols">
+    <tr>
+      <td class="jf-col-bill">
+        <div class="jf-cap">{{ _("Invoice To") }}</div>
+        <div class="jf-cust">{{ doc.customer_name or doc.customer }}</div>
+        {% if doc.address_display %}<div class="jf-addr">{{ doc.address_display }}</div>{% endif %}
+        <table class="jf-kv">
+          {% if cust_pin %}<tr><td>{{ _("Tax PIN") }}</td><td>{{ cust_pin }}</td></tr>{% endif %}
+          {% if doc.contact_display %}<tr><td>{{ _("Attention") }}</td><td>{{ doc.contact_display }}</td></tr>{% endif %}
+          {% if doc.contact_mobile %}<tr><td>{{ _("Phone") }}</td><td>{{ doc.contact_mobile }}</td></tr>{% endif %}
+          {% if doc.contact_email %}<tr><td>{{ _("Email") }}</td><td>{{ doc.contact_email }}</td></tr>{% endif %}
+        </table>
+      </td>
+      <td class="jf-col-gap"></td>
+      <td class="jf-col-facts">
+        <table class="jf-facts">
+          <tr><td>{{ _("Invoice Date") }}</td><td>{{ frappe.utils.formatdate(doc.posting_date, "dd MMM yyyy") }}</td></tr>
+          <tr><td>{{ _("Payment Due") }}</td><td>{{ frappe.utils.formatdate(doc.due_date, "dd MMM yyyy") if doc.due_date else _("On receipt") }}</td></tr>
+          {% if doc.po_no %}<tr><td>{{ _("Reference") }}</td><td>{{ doc.po_no }}</td></tr>{% endif %}
+          <tr><td>{{ _("Currency") }}</td><td>{{ doc.currency }}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
-	<table class="totals">
-		<tr><td>{{ _("Subtotal") }}</td><td class="num">{{ doc.get_formatted("net_total") }}</td></tr>
-		{%- for tax in doc.taxes %}
-		<tr><td>{{ tax.description }}{% if tax.rate %} @ {{ tax.rate }}%{% endif %}</td><td class="num">{{ tax.get_formatted("tax_amount") }}</td></tr>
-		{%- endfor %}
-		<tr class="grand"><td>{{ _("Total") }} ({{ doc.currency }})</td><td class="num">{{ doc.get_formatted("grand_total") }}</td></tr>
-		{%- if doc.outstanding_amount != doc.grand_total %}
-		<tr><td>{{ _("Balance due") }}</td><td class="num">{{ doc.get_formatted("outstanding_amount") }}</td></tr>
-		{%- endif %}
-	</table>
+  {% if ns.matter %}
+  <div class="jf-matter">
+    <div class="jf-cap">{{ _(ns.df.label or ns.meta.name) }}</div>
+    <div class="jf-matter-title">{{ ns.matter.get(ns.meta.title_field) if ns.meta.title_field else ns.matter.name }}</div>
+    <div class="jf-matter-sub">
+      {%- set parts = [ns.matter.name] -%}
+      {%- for fn in MATTER_DETAIL_FIELDS -%}
+        {%- set mdf = ns.meta.get_field(fn) -%}
+        {%- set val = ns.matter.get(fn) -%}
+        {%- if mdf and val -%}
+          {%- if mdf.fieldtype == "Link" -%}
+            {%- set lm = frappe.get_meta(mdf.options) -%}
+            {%- set tf = lm.title_field or ("full_name" if lm.has_field("full_name") else "name") -%}
+            {%- set val = frappe.db.get_value(mdf.options, val, tf) or val -%}
+          {%- endif -%}
+          {%- set _ = parts.append(mdf.label ~ ": " ~ val) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ parts|join(" &middot; ") }}
+    </div>
+  </div>
+  {% endif %}
 
-	<div style="margin-bottom: 14px;">
-		<span class="tag">{{ _("AMOUNT IN WORDS") }}</span>
-		<div style="font-weight: 700;">{{ doc.in_words }}</div>
-	</div>
+  <table class="jf-items">
+    <thead>
+      <tr>
+        <th class="c-no">#</th>
+        <th class="c-desc">{{ _("Description") }}</th>
+        <th class="c-qty">{{ _("Qty") }}</th>
+        <th class="c-rate">{{ _("Rate") }}</th>
+        <th class="c-amt">{{ _("Amount") }} ({{ doc.currency }})</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for it in doc.items %}
+      <tr>
+        <td class="c-no">{{ loop.index }}</td>
+        <td class="c-desc">
+          <div class="jf-it-name">{{ it.item_name }}</div>
+          {% set d = (it.description or "")|striptags|trim %}
+          {% if d and d != (it.item_name or "")|trim %}<div class="jf-it-desc">{{ it.description }}</div>{% endif %}
+        </td>
+        <td class="c-qty">{{ "{:g}".format(it.qty or 0) }}</td>
+        <td class="c-rate">{{ money(it.rate) }}</td>
+        <td class="c-amt">{{ money(it.amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-	{%- if bank %}
-	<div style="margin-bottom: 14px;">
-		<span class="tag">{{ _("PAYMENT DETAILS") }}</span>
-		<div>{{ bank.account_name }} &middot; {{ bank.bank }}{% if bank.branch_code %} ({{ bank.branch_code }}){% endif %}</div>
-		<div class="muted">{{ _("Account No.") }} {{ bank.bank_account_no }}</div>
-	</div>
-	{%- endif %}
+  <table class="jf-foot">
+    <tr>
+      <td class="jf-words">
+        <div class="jf-cap">{{ _("Amount in Words") }}</div>
+        <div class="jf-words-v">{{ doc.in_words or "" }}</div>
+        {% if doc.taxes %}
+        <div class="jf-note">
+          {{ _("Tax charged at") }}
+          {%- for t in doc.taxes %} {{ "{:g}".format(t.rate or 0) }}%{% if not loop.last %},{% endif %}{% endfor %}
+          {{ _("on the taxable value shown.") }}
+        </div>
+        {% endif %}
+      </td>
+      <td class="jf-tot-wrap">
+        <table class="jf-tot">
+          <tr><td>{{ _("Subtotal") }}</td><td>{{ money(doc.net_total) }}</td></tr>
+          {% for t in doc.taxes %}
+          <tr><td>{{ t.description }}</td><td>{{ money(t.tax_amount) }}</td></tr>
+          {% endfor %}
+          {% if doc.discount_amount %}
+          <tr><td>{{ _("Discount") }}</td><td>({{ money(doc.discount_amount) }})</td></tr>
+          {% endif %}
+          <tr class="jf-tot-grand"><td>{{ _("Total") }} ({{ doc.currency }})</td><td>{{ money(doc.grand_total) }}</td></tr>
+          {% if doc.docstatus == 1 and doc.outstanding_amount and doc.outstanding_amount != doc.grand_total %}
+          <tr class="jf-tot-due"><td>{{ _("Balance Due") }}</td><td>{{ money(doc.outstanding_amount) }}</td></tr>
+          {% endif %}
+        </table>
+      </td>
+    </tr>
+  </table>
 
-	{%- if doc.terms %}<div class="note">{{ doc.terms }}</div>{% endif %}
+  <div class="jf-tail">
+    <span class="jf-tail-strong">{{ co.company_name or doc.company }}</span>
+    {%- if doc.company_tax_id or co.tax_id %} &nbsp;&middot;&nbsp; PIN {{ doc.company_tax_id or co.tax_id }}{% endif %}
+  </div>
+
 </div>
